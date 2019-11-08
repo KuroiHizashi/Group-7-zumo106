@@ -52,8 +52,112 @@
  * @brief   
  * @details  ** Enable global interrupt since Zumo library uses interrupts. **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
 */
+#if 0 //tehtävä 1 vko 2
 
-#if 1
+void zmain(void)
+{   
+    uint8 button;
+    while(true)
+    {
+        button = SW1_Read();
+        if (button == 0)
+        {
+            printf("Button pressed\n");
+            for (int i = 0; i < 17; i++)
+            {
+                if (i%2 == 0) //Piippaukset
+                {
+                    if (i>5 && i<12) //PitkäPiippaus
+                    {
+                        Beep(1500, 150);
+                    }else //LyhytPiippaus
+                    {
+                        Beep(500, 150);
+                    }
+                }else  //välit
+                {
+                    vTaskDelay(500);
+                }
+            }
+        }
+    }  
+ }   
+#endif
+
+#if 0 //tehtävä 2 vko 2
+void zmain(void)
+{
+    int age = 0;
+    float timeStart = 0;
+    float timeStop = 0;
+    float time = 0;
+    
+    timeStart = xTaskGetTickCount();
+    
+    printf ("How old are you? ");
+    scanf ("%d",&age);
+    
+    timeStop = xTaskGetTickCount();
+    time = (timeStop - timeStart)/1000;
+    printf ("%f\n", time);
+    if (time < 3)
+    {
+        if (age <= 21)
+        {
+            printf("Super fast dude!");
+        }else if (age >= 22 && age <= 50)
+        {
+            printf("Be quick or be dead");
+        }else if (age > 50)
+        {
+            printf("Still going strong");
+        }
+    }else if (time >= 3 && time <= 5)
+    {
+        if (age <= 21)
+        {
+            printf("So mediocre.");
+        }else if (age >= 22 && age <= 50)
+        {
+            printf("You are so average.");
+        }else if (age > 50)
+        {
+            printf("You are doing ok for your age.");
+        }
+    
+    }else if (time > 5)
+    {
+        if (age <= 21)
+        {
+            printf("My granny is faster than you!");
+        }else if (age >= 22 && age <= 50)
+        {
+            printf("Have you been smoking something illegal?");
+        }else if (age > 50)
+        {
+            printf("Do they still allow you to drive?");
+        }
+    }
+}
+#endif
+
+#if 0 //testi
+void zmain(void)
+{
+    uint8 button;
+    button = SW1_Read();
+   while (button == 1)
+    {
+    BatteryLed_Write(1); // Switch led on 
+    vTaskDelay(500);
+    BatteryLed_Write(0); // Switch led off 
+    vTaskDelay(500);
+    } 
+    BatteryLed_Write(0); // Switch led off 
+}   
+#endif
+
+#if 0
 // Hello World!
 void zmain(void)
 {
@@ -94,7 +198,7 @@ void zmain(void)
 #endif
 
 
-#if 0
+#if 0 //tehtävä 3 vko 2
 //battery level//
 void zmain(void)
 {
@@ -102,6 +206,10 @@ void zmain(void)
 
     int16 adcresult =0;
     float volts = 0.0;
+    float vmax = 5.0;
+    float bitres = 4096.0;
+    float divider = vmax/bitres;
+    uint8 button = 1;
 
     printf("\nBoot\n");
 
@@ -116,16 +224,32 @@ void zmain(void)
     {
         char msg[80];
         ADC_Battery_StartConvert(); // start sampling
+        
         if(ADC_Battery_IsEndConversion(ADC_Battery_WAIT_FOR_RESULT)) {   // wait for ADC converted value
             adcresult = ADC_Battery_GetResult16(); // get the ADC value (0 - 4095)
             // convert value to Volts
+            volts = adcresult*divider;
+            button = SW1_Read();
+            while(volts < 4 && button == 1)
+            {
+                button = SW1_Read();
+                BatteryLed_Write(1); // Switch led on 
+                vTaskDelay(50);
+                BatteryLed_Write(0); // Switch led off 
+                vTaskDelay(50);
+                printf("%d %f\r\n",adcresult, volts);
+            }
+           
             // you need to implement the conversion
             
             // Print both ADC results and converted value
             printf("%d %f\r\n",adcresult, volts);
+            vTaskDelay(1000);
         }
-        vTaskDelay(500);
+       
     }
+    
+    
  }   
 #endif
 
