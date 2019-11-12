@@ -109,7 +109,7 @@ void zmain(void)
  }   
 #endif    
 
-#if 1 //tehtävä 1 vko 4
+#if 0 //tehtävä 1 vko 4
 void zmain(void)
 {
     int button = 1;
@@ -165,6 +165,63 @@ void zmain(void)
 
 #endif
 
+#if 1 //tehtävä 2 vko 4
+void zmain(void)
+{
+    int button = 1;
+    int counter = 0;
+    int change = 1;
+    
+    struct sensors_ ref;
+    struct sensors_ dig;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0) //runs when button is pressed
+        {         
+            motor_forward(100,10);
+            reflectance_digital(&dig); 
+            //printf("%d\n", counter);
+            if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+            {
+                counter++;
+                if(counter == 1) //run if first section and stops 
+                {
+                    motor_forward(0,0);
+                    motor_turn(125,0,900); //turn right 90 degrees
+                    //IR_wait();
+                    vTaskDelay(3000);
+                } else if (counter == 2)
+                {
+                    motor_turn(0,100,900); //turn left 90 degrees
+                } else if (counter < 5 && counter > 2)
+                {
+                    motor_turn(125,0,900); //turn right 90 degrees
+                } else if(counter == 5)
+                {
+                    motor_forward(0,0);
+                    button = 1;
+                    counter = 0;
+                    change = 1;
+                }
+                change = 0;
+            }
+            if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0)
+            {
+                change = 1;
+            }
+        }
+    }
+}
+#endif
+
 #if 0 //tehtävä 3 vko 3 (Matka Mordoriin)
 void zmain(void)
 {
@@ -199,11 +256,11 @@ motor_forward(0,0);         // set speed to zero to stop motors
             vTaskDelay(50);
             if (random == 1)
             {
-            motor_turn((rand() % 200),0,(rand() % 1000)); //turn right 90 degrees    
+            motor_turn((rand() % 200),0,(rand() % 1000));
             }
             else if (random == 0)
             {
-            motor_turn(0,(rand() % 200),(rand() % 1000)); //turn left 90 degrees   
+            motor_turn(0,(rand() % 200),(rand() % 1000));
             }
             /*else if (random == 2)
             {
