@@ -186,7 +186,7 @@ void zmain(void)
         button = SW1_Read();
         while (button == 0) //runs when button is pressed
         {         
-            motor_forward(100,10);
+            motor_forward(50,10);
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
@@ -194,16 +194,17 @@ void zmain(void)
                 counter++;
                 if(counter == 1) //run if first section and stops 
                 {
-                    motor_forward(0,0);
+                    
                     motor_turn(125,0,900); //turn right 90 degrees
                     //IR_wait();
+                    motor_forward(0,0);
                     vTaskDelay(3000);
                 } else if (counter == 2)
                 {
-                    motor_turn(0,100,900); //turn left 90 degrees
+                    motor_turn(0,105,900); //turn left 90 degrees
                 } else if (counter < 5 && counter > 2)
                 {
-                    motor_turn(125,0,900); //turn right 90 degrees
+                    motor_turn(120,0,900); //turn right 90 degrees
                 } else if(counter == 5)
                 {
                     motor_forward(0,0);
@@ -222,7 +223,7 @@ void zmain(void)
 }
 #endif
 
-#if 1 //tehtävä 2 vko 4
+#if 1 //tehtävä 3 vko 4
 void zmain(void)
 {
     int button = 1;
@@ -243,13 +244,13 @@ void zmain(void)
         button = SW1_Read();
         while (button == 0) //runs when button is pressed
         {         
-            motor_forward(100,10);
+            motor_forward(100,5);
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
             {
                 counter++;
-                if(counter == 1) //run if first section and stops 
+                if(counter == 1) //run to first section and stops 
                 {
                     motor_forward(0,0);
                     //IR_wait();
@@ -263,13 +264,22 @@ void zmain(void)
                 }
                 change = 0;
             }
-            if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) //makes sure that lines are not counted twice #fix 
+            while((dig.l3 == 0 || dig.l2 == 0) && counter >0) //turns left if one of the left sensors are black
             {
+                motor_turn(160,15,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                 change = 1;
             }
-            if(dig.l3 == 0 && (dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) //makes sure that lines are not counted twice #fix 
+            }
+            while((dig.r2 == 0 || dig.r3 == 0) && counter >0) //turns right if one of the right sensors are black
             {
-                //turn right
+                motor_turn(15,160,1); // turn left
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }
+                
             }
         }
     }
