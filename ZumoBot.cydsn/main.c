@@ -47,6 +47,7 @@
 #include <sys/time.h>
 #include "serial1.h"
 #include <unistd.h>
+#include <stdlib.h>
 /**
  * @file    main.c
  * @brief   
@@ -83,6 +84,194 @@ void zmain(void)
     }  
  }   
 #endif
+#if 0
+/* Example of how to use te Accelerometer!!!*/
+void zmain(void)
+{
+    struct accData_ data;
+    
+    printf("Accelerometer test...\n");
+
+    if(!LSM303D_Start()){
+        printf("LSM303D failed to initialize!!! Program is Ending!!!\n");
+        vTaskSuspend(NULL);
+    }
+    else {
+        printf("Device Ok...\n");
+    }
+    
+    while(true)
+    {
+        LSM303D_Read_Acc(&data);
+        printf("%8d %8d %8d\n",data.accX, data.accY, data.accZ);
+        vTaskDelay(50);
+    }
+ }   
+#endif    
+
+#if 1 //tehtävä 1 vko 4
+void zmain(void)
+{
+    int button = 1;
+    int counter = 0;
+    int change = 1;
+    
+    struct sensors_ ref;
+    struct sensors_ dig;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0)
+        {         
+            motor_forward(100,10);
+            reflectance_digital(&dig); // when blackness value is over threshold the sensors reads 1, otherwise 0
+            // print out each period of reflectance sensors
+            //printf("%5d %5d %5d %5d %5d %5d \r\n", dig.l3, dig.l2, dig.l1, dig.r1, dig.r2, dig.r3);
+            printf("%d\n", counter);
+            if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+            {
+                counter++;
+                if(counter == 1) //run if first section
+                {
+                    motor_forward(0,0);
+                    printf("%d\n", counter);
+                    //IR_wait();
+                    vTaskDelay(3000);
+                } else if(counter == 4)
+                {
+                    motor_forward(0,0);
+                    button = 1;
+                    counter = 0;
+                    change = 1;
+                }
+                printf("pipari\n");
+                change = 0;
+            }
+            if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0)
+            {
+                printf("kahvi\n");
+                change = 1;
+            }
+        }
+    }
+}
+
+#endif
+
+#if 0 //tehtävä 3 vko 3 (Matka Mordoriin)
+void zmain(void)
+{
+int button = 1;
+int random = 0;
+int treshold = 0;
+struct accData_ data;
+motor_start();              // enable motor controller
+motor_forward(0,0);         // set speed to zero to stop motors
+    if(!LSM303D_Start()){
+        printf("LSM303D failed to initialize!!! Program is Ending!!!\n");
+        vTaskSuspend(NULL);
+    }
+    else {
+        printf("Device Ok...\n");
+    }
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0)
+        {   
+            if (treshold > 2000 || treshold < -2000)
+            {
+                Beep(100,50);
+                motor_backward(50,1000);    // moving backward
+                motor_turn(100,200,1000);     // turn left 90 degrees
+            }           
+            motor_forward((rand() % 200),(rand() % 1000));
+            random = rand() % 2;
+            LSM303D_Read_Acc(&data);
+            printf("%8d %8d %8d\n",data.accX, data.accY, data.accZ);
+            vTaskDelay(50);
+            if (random == 1)
+            {
+            motor_turn((rand() % 200),0,(rand() % 1000)); //turn right 90 degrees    
+            }
+            else if (random == 0)
+            {
+            motor_turn(0,(rand() % 200),(rand() % 1000)); //turn left 90 degrees   
+            }
+            /*else if (random == 2)
+            {
+            motor_backward((rand() % 200),(rand() % 1000));    // moving backward
+            }*/
+            treshold = data.accX;
+        }
+    }
+   while(true)
+   {
+      vTaskDelay(100);
+   }
+}   
+#endif
+
+#if 0 //testi
+void zmain(void)
+{
+int button = 1;
+motor_start();              // enable motor controller
+motor_forward(0,0);         // set speed to zero to stop motors
+Ultra_Start();
+vTaskDelay(3000);
+while(true)
+{
+    button = SW1_Read();
+    if (button == 0)
+    {
+        motor_forward(100,3500); 
+        motor_turn(125,0,900); //turn right 90 degrees
+        motor_forward(100,3200);
+        motor_turn(125,0,900); //turn right 90 degrees
+        motor_forward(100,3200);
+        motor_turn(125,0,900); //turn right 90 degrees
+        
+        motor_turn(150,75,2000); //fukin banaaaana käännös
+        motor_forward(100,1100);
+        motor_forward(0,0); 
+    }
+}
+}   
+#endif
+
+#if 0 //tehtävä 2 vko 3
+void zmain(void)
+{
+int run = 1;
+int d = 0;
+motor_start();              // enable motor controller
+motor_forward(0,0);         // set speed to zero to stop motors
+Ultra_Start();
+vTaskDelay(3000);
+
+while (run == 1)
+{
+    d = Ultra_GetDistance();
+    if (d < 10)
+    {
+        Beep(100,50);
+        motor_backward(50,1000);    // moving backward
+        //motor_turn(100,200,1000);     // turn left 90 degrees
+        motor_turn(0,100,900); //turn left 90 degrees
+    }
+    motor_forward(120,25); 
+    //printf("distance = %d\r\n", d);   
+}   
+}   
+#endif
 
 #if 0 //tehtävä 2 vko 2
 void zmain(void)
@@ -94,7 +283,7 @@ void zmain(void)
     
     timeStart = xTaskGetTickCount();
     
-    printf ("How old are you? ");
+    printf ("How old are you?\n ");
     scanf ("%d",&age);
     
     timeStop = xTaskGetTickCount();
@@ -104,39 +293,43 @@ void zmain(void)
     {
         if (age <= 21)
         {
-            printf("Super fast dude!");
+            printf("Super fast dude!\n");
         }else if (age >= 22 && age <= 50)
         {
-            printf("Be quick or be dead");
+            printf("Be quick or be dead\n");
         }else if (age > 50)
         {
-            printf("Still going strong");
+            printf("Still going strong\n");
         }
     }else if (time >= 3 && time <= 5)
     {
         if (age <= 21)
         {
-            printf("So mediocre.");
+            printf("So mediocre.\n");
         }else if (age >= 22 && age <= 50)
         {
-            printf("You are so average.");
+            printf("You are so average.\n");
         }else if (age > 50)
         {
-            printf("You are doing ok for your age.");
+            printf("You are doing ok for your age.\n");
         }
     
     }else if (time > 5)
     {
         if (age <= 21)
         {
-            printf("My granny is faster than you!");
+            printf("My granny is faster than you!\n");
         }else if (age >= 22 && age <= 50)
         {
-            printf("Have you been smoking something illegal?");
+            printf("Have you been smoking something illegal?\n");
         }else if (age > 50)
         {
-            printf("Do they still allow you to drive?");
+            printf("Do they still allow you to drive?\n");
         }
+    }
+    while(true)
+    {
+    vTaskDelay(100);
     }
 }
 #endif
@@ -228,7 +421,7 @@ void zmain(void)
         if(ADC_Battery_IsEndConversion(ADC_Battery_WAIT_FOR_RESULT)) {   // wait for ADC converted value
             adcresult = ADC_Battery_GetResult16(); // get the ADC value (0 - 4095)
             // convert value to Volts
-            volts = adcresult*divider;
+            volts = adcresult*divider*1.5;
             button = SW1_Read();
             while(volts < 4 && button == 1)
             {
@@ -438,6 +631,8 @@ void zmain(void)
 void zmain(void)
 {
     struct accData_ data;
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
     
     printf("Accelerometer test...\n");
 
@@ -451,6 +646,8 @@ void zmain(void)
     
     while(true)
     {
+        //motor_forward(250,50);
+        //motor_backward(250,50);
         LSM303D_Read_Acc(&data);
         printf("%8d %8d %8d\n",data.accX, data.accY, data.accZ);
         vTaskDelay(50);
