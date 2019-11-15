@@ -84,6 +84,184 @@ void zmain(void)
     }  
  }   
 #endif
+
+#if 0 //tehtävä 2 vko 5
+void zmain(void)
+{
+int run = 1;
+int d = 0;
+motor_start();              // enable motor controller
+motor_forward(0,0);         // set speed to zero to stop motors
+Ultra_Start();
+vTaskDelay(3000);
+int rand;
+
+while (run == 1)
+{
+    d = Ultra_GetDistance();
+    if (d < 10)
+    {
+        Beep(100,50);
+        motor_backward(50,1000);    // moving backward
+        //motor_turn(100,200,1000);     // turn left 90 degrees
+        motor_turn((rand() % 200),0,(rand() % 1000)); //turn left 90 degrees
+    }
+    motor_forward(120,25); 
+    //printf("distance = %d\r\n", d);   
+}   
+}   
+#endif
+
+#if 0 //tehtävä 1 vko 5 //need to configure mqqt connection
+
+void zmain(void)
+{   
+    RTC_Start(); // start real time clock
+    
+    RTC_TIME_DATE now;
+    int hours;
+    int minutes;
+    vTaskDelay(10000);
+    // set current time
+    printf("Enter current time: hours ");
+    scanf("%d",&hours);
+    printf("Enter current time: minutes ");
+    scanf("%d",&minutes);
+    
+    now.Hour = hours;
+    now.Min = minutes;
+    RTC_WriteTime(&now); // write the time to real time clock
+    
+    while(true)
+    {
+       if(SW1_Read() == 0) {
+            // read the current time
+            RTC_DisableInt(); /* Disable Interrupt of RTC Component */
+            now = *RTC_ReadTime(); /* copy the current time to a local variable */
+            RTC_EnableInt(); /* Enable Interrupt of RTC Component */
+
+            // print the current time
+            printf("%2d:%02d\n", now.Hour, now.Min);
+            
+            printf("Hello, motherfucker!\n");// print to screen (PuTTy)
+            print_mqtt("ZUMO7/output", "%2d:%02d", now.Hour, now.Min);// Send message to topic
+
+            // wait until button is released
+            while(SW1_Read() == 0) vTaskDelay(50);
+        }
+        vTaskDelay(50);
+    }
+}   
+#endif
+
+#if 0 //testi korjaus robotin liikkeelle
+void zmain(void)
+{
+ 
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    int button = 1;
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0)
+        {         
+            motor_turn(100,90,900);
+        }
+    }
+}   
+#endif  
+#if 0 //tehtävä 3 vko 4 ALTERNATIVE BETTER
+void zmain(void)
+{
+    int button = 1;
+    int counter = 0;
+    int change = 1;
+    IR_Start();
+    
+    struct sensors_ ref;
+    struct sensors_ dig;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0) //runs when button is pressed
+        {         
+            motor_turn(100,90,5); //korjaus robotin liikkeelle suoraan
+            reflectance_digital(&dig); 
+            //printf("%d\n", counter);
+             
+            if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+            {
+                counter++;
+                if(counter == 1) //run to first section and stops 
+                {
+                    motor_forward(0,0);
+                    //IR_wait();
+                    vTaskDelay(3000);
+                } else if(counter == 2)
+                {
+                    motor_forward(0,0);
+                    button = 1;
+                    counter = 0;
+                    change = 1;
+                }
+                change = 0;
+            }
+             while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
+            {
+                motor_turn(15,250,20); // turn left
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while((dig.r3 == 1 && dig.l3 == 0) && counter >0) //SUPRAJYRKKÄ käännös OIKEALLE
+            {
+                motor_turn(250,15,20); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while((dig.l1 == 0 && dig.r2 == 1) && counter >0) //Jyrkkä käännös oikealle
+            {
+                motor_turn(160,15,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while((dig.r1 == 0 && dig.l2 == 1) && counter >0) //Jyrkkä käännös vasemmalle
+            {
+                motor_turn(15,160,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while((dig.l1 == 0 && dig.r2 == 0) && counter >0) //Loiva käännös Oikealle
+            {
+                motor_turn(110,100,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while((dig.r1 == 0 && dig.l2 == 0) && counter >0) //Loiva käännös Vasemalle
+            {
+                motor_turn(100,110,1); // turn left
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}          
+        }
+    }
+}
+#endif
+
+
 #if 0
 /* Example of how to use te Accelerometer!!!*/
 void zmain(void)
@@ -115,6 +293,7 @@ void zmain(void)
     int button = 1;
     int counter = 0;
     int change = 1;
+    IR_Start();
     
     struct sensors_ ref;
     struct sensors_ dig;
@@ -142,8 +321,8 @@ void zmain(void)
                 {
                     motor_forward(0,0);
                     printf("%d\n", counter);
-                    //IR_wait();
-                    vTaskDelay(3000);
+                    IR_wait();
+                    //vTaskDelay(3000);
                 } else if(counter == 4)
                 {
                     motor_forward(0,0);
@@ -165,12 +344,13 @@ void zmain(void)
 
 #endif
 
-#if 0 //tehtävä 2 vko 4
+#if 1 //tehtävä 2 vko 4 TÄSSÄ ARVOT UUSIKS PIENEMPÄÄ RATAA VARTEN
 void zmain(void)
 {
     int button = 1;
     int counter = 0;
     int change = 1;
+    //IR_Start();
     
     struct sensors_ ref;
     struct sensors_ dig;
@@ -194,17 +374,15 @@ void zmain(void)
                 counter++;
                 if(counter == 1) //run if first section and stops 
                 {
-                    
-                    motor_turn(125,0,900); //turn right 90 degrees
                     //IR_wait();
                     motor_forward(0,0);
                     vTaskDelay(3000);
                 } else if (counter == 2)
                 {
-                    motor_turn(0,105,900); //turn left 90 degrees
+                    motor_turn(0,76,300); //turn left 90 degrees
                 } else if (counter < 5 && counter > 2)
                 {
-                    motor_turn(120,0,900); //turn right 90 degrees
+                    motor_turn(76,0,300); //turn right 90 degrees
                 } else if(counter == 5)
                 {
                     motor_forward(0,0);
@@ -223,7 +401,7 @@ void zmain(void)
 }
 #endif
 
-#if 1 //tehtävä 3 vko 4
+#if 0 //tehtävä 3 vko 4
 void zmain(void)
 {
     int button = 1;
@@ -286,7 +464,7 @@ void zmain(void)
 }
 #endif
 
-#if 0 //tehtävä 3 vko 3 (Matka Mordoriin)
+#if 0 //tehtävä 3 vko 3 (Matka Mordoriin) UUSIKS MENI
 void zmain(void)
 {
 int button = 1;
@@ -307,29 +485,24 @@ motor_forward(0,0);         // set speed to zero to stop motors
         button = SW1_Read();
         while (button == 0)
         {   
-            if (treshold > 2000 || treshold < -2000)
-            {
-                Beep(100,50);
-                motor_backward(50,1000);    // moving backward
-                motor_turn(100,200,1000);     // turn left 90 degrees
-            }           
-            motor_forward((rand() % 200),(rand() % 1000));
-            random = rand() % 2;
+            motor_forward(150 , 1);
+            random = rand() % 1000;
             LSM303D_Read_Acc(&data);
             printf("%8d %8d %8d\n",data.accX, data.accY, data.accZ);
-            vTaskDelay(50);
+            if (treshold > 100000 || treshold < -10000)
+            {
+                Beep(100,50);
+                motor_backward(50,400);    // moving backward
+                motor_turn(100,200,400);     // turn left 90 degrees
+            }                      
             if (random == 1)
             {
-            motor_turn((rand() % 200),0,(rand() % 1000));
+            motor_turn((rand() % 100),0,(rand() % 400));
             }
             else if (random == 0)
             {
-            motor_turn(0,(rand() % 200),(rand() % 1000));
+            motor_turn(0,(rand() % 100),(rand() % 400));
             }
-            /*else if (random == 2)
-            {
-            motor_backward((rand() % 200),(rand() % 1000));    // moving backward
-            }*/
             treshold = data.accX;
         }
     }
@@ -340,7 +513,7 @@ motor_forward(0,0);         // set speed to zero to stop motors
 }   
 #endif
 
-#if 0 //testi
+#if 0 //tehtävä 1 vko 3
 void zmain(void)
 {
 int button = 1;
