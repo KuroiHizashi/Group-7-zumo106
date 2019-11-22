@@ -85,6 +85,154 @@ void zmain(void)
  }   
 #endif
 
+#if 0  //vko 5 tehtävä 3
+ void zmain(void)
+{
+    double aika;
+    TickType_t start, end;
+    RTC_Start(); // start real time clock
+    time_t alotus;
+    time_t lopetus;
+    int button = 1;
+    int counter = 0;
+    int change = 1;
+    IR_Start();
+    
+    struct sensors_ ref;
+    struct sensors_ dig;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    
+    
+ while (true)
+    {
+        button = SW1_Read();
+        while (button == 0) //runs when button is pressed
+        {         
+            motor_forward(50,1);
+            reflectance_digital(&dig);  
+            if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+            {
+                counter++;
+                if(counter == 1) //run to first section and stops 
+                {
+                    motor_forward(0,0);
+                    IR_wait();
+                    start=xTaskGetTickCount();
+                    time(&alotus);
+                } else if(counter == 2)
+                {
+                    motor_forward(0,0);
+                    time(&lopetus);
+                    aika = difftime(lopetus,alotus);
+                    end=xTaskGetTickCount();
+                    print_mqtt("ZUMO7/output" ,"%d",((end-start)/1000));
+                    button = 1;
+                    counter = 0;
+                    change = 1;
+                }
+                change = 0;               
+            }if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0)
+            {
+                change = 1;
+            }
+        }
+    }
+
+
+
+}   
+    
+    
+    
+    
+    
+#endif
+#if 0 //tehtävä 3 vko 5 //Ei toimiva tehtävä 5
+void zmain(void)
+{
+    int button = 1;
+    int counter = 0;
+    int change = 1;
+    IR_Start();
+    RTC_Start(); // start real time clock
+    
+    RTC_TIME_DATE now;
+    int hours;
+    int minutes;
+    int seconds;
+    
+    now.Hour = hours;
+    now.Min = minutes;
+    now.Sec = seconds;
+    RTC_WriteTime(&now); // write the time to real time clock
+    
+    
+    struct sensors_ ref;
+    struct sensors_ dig;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0)
+        {         
+            motor_forward(100,10);
+            reflectance_digital(&dig); // when blackness value is over threshold the sensors reads 1, otherwise 0
+            // print out each period of reflectance sensors
+            //printf("%5d %5d %5d %5d %5d %5d \r\n", dig.l3, dig.l2, dig.l1, dig.r1, dig.r2, dig.r3);
+            printf("%d\n", counter);
+            if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+            {
+                counter++;
+                if(counter == 1) //run to the first intersection
+                {
+                    motor_forward(0,0);
+                    printf("%d\n", counter);
+                    IR_wait();
+                    int seconds = 0;
+                    // read the current time
+                    RTC_DisableInt(); /* Disable Interrupt of RTC Component */
+                    now = *RTC_ReadTime(); /* copy the current time to a local variable */
+                    RTC_EnableInt(); /* Enable Interrupt of RTC Component */
+                    // print the current time
+                    printf("%02d", now.Sec);
+                    
+                    printf("Hello, motherfucker!\n");// print to screen (PuTTy)
+                    printf("%2d\n", now.Sec);// print to screen (PuTTy)
+                    print_mqtt("ZUMO7/output", "%2d:%02d", now.Hour, now.Min);// Send message to topic
+
+                    //vTaskDelay(3000);
+                } else if(counter == 2)
+                {
+                    motor_forward(0,0);
+                    button = 1;
+                    counter = 0;
+                    change = 1;
+                }
+                printf("pipari\n");
+                change = 0;
+            }
+            if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0)
+            {
+                printf("kahvi\n");
+                change = 1;
+            }
+        }
+    }
+}
+
+#endif
+
 #if 0 //tehtävä 2 vko 5
 void zmain(void)
 {
@@ -94,19 +242,41 @@ motor_start();              // enable motor controller
 motor_forward(0,0);         // set speed to zero to stop motors
 Ultra_Start();
 vTaskDelay(3000);
-int rand;
+int random;
 
 while (run == 1)
 {
     d = Ultra_GetDistance();
     if (d < 10)
     {
+        motor_forward(0,2);
         Beep(100,50);
+        Beep(110,45);
+        Beep(120,40); //You can remove all the beeps but the first one and it will work properly, also remove the stop at the start.
+        Beep(130,35);
+        Beep(140,30);
+        Beep(150,25);
+        Beep(160,20);
+        Beep(170,15);
+        Beep(180,10);
+        Beep(190,5);
+        
+        
         motor_backward(50,1000);    // moving backward
+        random = rand() %2;
         //motor_turn(100,200,1000);     // turn left 90 degrees
-        motor_turn((rand() % 200),0,(rand() % 1000)); //turn left 90 degrees
+        if (random == 0)
+        {
+            motor_turn(150,0,500); //random turn (rand() % 200)
+            print_mqtt("ZUMO7/output", "JOSEFIINA IS GOING RIGHT BUT TURNING LEFT" );// Send message to topic
+        }
+        else if (random == 1)
+        {
+            motor_turn(0,150,500); //random turn (rand() % 200)
+            print_mqtt("ZUMO7/output", "JOSEFIINA IS GOING LEFT BUT TURNING RIGHT" );// Send message to topic
+        }
     }
-    motor_forward(120,25); 
+    motor_forward(120,1); 
     //printf("distance = %d\r\n", d);   
 }   
 }   
@@ -193,7 +363,7 @@ void zmain(void)
         button = SW1_Read();
         while (button == 0) //runs when button is pressed
         {         
-            motor_turn(100,90,5); //korjaus robotin liikkeelle suoraan
+            motor_forward(190,1); //korjaus robotin liikkeelle suoraan
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
@@ -344,7 +514,7 @@ void zmain(void)
 
 #endif
 
-#if 1 //tehtävä 2 vko 4 TÄSSÄ ARVOT UUSIKS PIENEMPÄÄ RATAA VARTEN
+#if 0 //tehtävä 2 vko 4 VALMIS
 void zmain(void)
 {
     int button = 1;
@@ -366,7 +536,7 @@ void zmain(void)
         button = SW1_Read();
         while (button == 0) //runs when button is pressed
         {         
-            motor_forward(50,10);
+            motor_forward(30,1);
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
@@ -379,10 +549,11 @@ void zmain(void)
                     vTaskDelay(3000);
                 } else if (counter == 2)
                 {
-                    motor_turn(0,76,300); //turn left 90 degrees
+                    motor_turn(0,150,590); //turn left 90 degrees  0,150,590
+                    //motor_backward(150,50);
                 } else if (counter < 5 && counter > 2)
                 {
-                    motor_turn(76,0,300); //turn right 90 degrees
+                    motor_turn(150,0,590); //turn right 90 degrees  150,0,590
                 } else if(counter == 5)
                 {
                     motor_forward(0,0);
@@ -464,7 +635,7 @@ void zmain(void)
 }
 #endif
 
-#if 0 //tehtävä 3 vko 3 (Matka Mordoriin) UUSIKS MENI
+#if 0 //tehtävä 3 vko 3 (Matka Mordoriin) VALMIS
 void zmain(void)
 {
 int button = 1;
