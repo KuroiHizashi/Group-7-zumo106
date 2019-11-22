@@ -53,6 +53,16 @@
  * @brief   
  * @details  ** Enable global interrupt since Zumo library uses interrupts. **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
 */
+void tank_turn_left(uint8, uint32);
+void tank_turn_right(uint8, uint32);
+
+#if 1 //Sumo Competion
+void zmain(void)
+{
+  
+}   
+#endif
+
 #if 0 //tehtävä 1 vko 2
 
 void zmain(void)
@@ -142,9 +152,6 @@ void zmain(void)
             }
         }
     }
-
-
-
 }   
     
     
@@ -519,7 +526,7 @@ void zmain(void)
 {
     int button = 1;
     int counter = 0;
-    int change = 1;
+    int change = 1; // change is 1 when robot has moved over the line 
     //IR_Start();
     
     struct sensors_ ref;
@@ -535,8 +542,50 @@ void zmain(void)
     {
         button = SW1_Read();
         while (button == 0) //runs when button is pressed
-        {         
-            motor_forward(30,1);
+        {        
+            motor_forward(50,1);
+             while(dig.l3 == 1 && dig.r3 == 0 && change == 1) //SUPRAJYRKKÄ käännös Vasemalle
+            {
+                motor_turn(15,250,20); // turn left
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0 && change == 1){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while(dig.r3 == 1 && dig.l3 == 0 && change == 1) //SUPRAJYRKKÄ käännös OIKEALLE
+            {
+                motor_turn(250,15,20); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while(dig.l1 == 0 && dig.r2 == 1 && change == 1) //Jyrkkä käännös oikealle
+            {
+                motor_turn(160,15,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while(dig.r1 == 0 && dig.l2 == 1 && change == 1) //Jyrkkä käännös vasemmalle
+            {
+                motor_turn(15,160,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while(dig.l1 == 0 && dig.r2 == 0 && change == 1) //Loiva käännös Oikealle
+            {
+                motor_turn(110,100,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}
+            while(dig.r1 == 0 && dig.l2 == 0 && change == 1) //Loiva käännös Vasemalle
+            {
+                motor_turn(100,110,1); // turn left
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }}          
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
@@ -549,11 +598,13 @@ void zmain(void)
                     vTaskDelay(3000);
                 } else if (counter == 2)
                 {
-                    motor_turn(0,150,590); //turn left 90 degrees  0,150,590
+                    motor_forward(50,500);
+                    tank_turn_left(100,535); //turn left 90 degrees  0,150,590
                     //motor_backward(150,50);
                 } else if (counter < 5 && counter > 2)
-                {
-                    motor_turn(150,0,590); //turn right 90 degrees  150,0,590
+                {   
+                    motor_forward(50,500);
+                    tank_turn_right(100,535); //turn right 90 degrees  150,0,590
                 } else if(counter == 5)
                 {
                     motor_forward(0,0);
@@ -1218,5 +1269,23 @@ void zmain(void)
     }
  }   
 #endif
+
+//#perse
+void tank_turn_left(uint8 speed,uint32 delay)
+{
+    MotorDirLeft_Write(1);      // set LeftMotor forward mode
+    MotorDirRight_Write(0);     // set RightMotor forward mode
+    PWM_WriteCompare1(speed); 
+    PWM_WriteCompare2(speed); 
+    vTaskDelay(delay);
+}
+void tank_turn_right(uint8 speed,uint32 delay)
+{
+    MotorDirLeft_Write(0);      // set LeftMotor forward mode
+    MotorDirRight_Write(1);     // set RightMotor forward mode
+    PWM_WriteCompare1(speed); 
+    PWM_WriteCompare2(speed); 
+    vTaskDelay(delay);
+}
 
 /* [] END OF FILE */
