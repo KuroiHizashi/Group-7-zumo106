@@ -59,7 +59,56 @@ void tank_turn_right(uint8, uint32);
 #if 1 //Sumo Competion
 void zmain(void)
 {
-  
+    //initialize variables
+    int speed = 50; //globab variable for conrtolling speed
+    int change = 1; //line detection is 1 when 1 of the sensors turns white after all black
+    int counter = 0;
+    int distance;
+    struct sensors_ ref;
+    struct sensors_ dig;
+    
+    //start sensors
+    motor_start();
+    motor_forward(0,0);
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+    IR_Start();
+    Ultra_Start();
+    
+    while(counter < 1) //staging and waiting IR
+    {
+        motor_forward(speed,1);
+        reflectance_digital(&dig);
+        if(change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1)
+        {
+            motor_forward(0,0);
+            //IR_wait();
+            vTaskDelay(1000);
+            speed = 100;
+            counter++;
+            motor_forward(speed, 3000); // drives to center of the ring #placeholder time
+        }
+    }
+    
+    while(true) //primary program here 
+    {
+            
+        reflectance_digital(&dig);
+        tank_turn_left(speed,1);
+        distance = Ultra_GetDistance();
+        if(distance > 20)
+        {
+            speed = 50;    
+        } else if(distance < 20){
+            speed = 255;    
+        }
+        while(Ultra_GetDistance() < 100 && dig.l1 == 0 && dig.r1 == 0) //when enemy is infront push
+        {
+            motor_forward(speed,1);
+            reflectance_digital(&dig);
+        }
+        
+    }
 }   
 #endif
 
