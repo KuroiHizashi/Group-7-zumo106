@@ -48,6 +48,7 @@
 #include "serial1.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <math.h>
 /**
  * @file    main.c
  * @brief   
@@ -64,29 +65,44 @@ void zmain(void)
     int change = 1; //line detection is 1 when 1 of the sensors turns white after all black
     int counter = 0;
     int distance;
+    int attack = 0;
+    int loopCounter = 0;
+    int angle = 0;
+    int turn = 0; //integer for turning after a fight
     struct sensors_ ref;
     struct sensors_ dig;
+    struct accData_ data;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
     
     //start sensors
     motor_start();
     motor_forward(0,0);
-    reflectance_start();
-    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+    
     IR_Start();
     Ultra_Start();
-    
-    while(counter < 1) //staging and waiting IR
+    if(!LSM303D_Start()){
+        printf("LSM303D failed to initialize!!! Program is Ending!!!\n");
+        vTaskSuspend(NULL);
+    }
+    else {
+        printf("Device Ok...\n");
+    }
+    vTaskDelay(10000);
+    while(true) //staging and waiting IR
     {
         motor_forward(speed,1);
         reflectance_digital(&dig);
-        if(change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1)
+        
+        if(change == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1)
         {
             motor_forward(0,0);
             //IR_wait();
-            vTaskDelay(1000);
+            vTaskDelay(3000);
             speed = 100;
-            counter++;
-            motor_forward(speed, 3000); // drives to center of the ring #placeholder time
+            motor_forward(speed, 1500); // drives to center of the ring #placeholder time
+            break;
         }
     }
     
@@ -96,20 +112,141 @@ void zmain(void)
         reflectance_digital(&dig);
         tank_turn_left(speed,1);
         distance = Ultra_GetDistance();
+        LSM303D_Read_Acc(&data);
         if(distance > 20)
         {
-            speed = 50;    
-        } else if(distance < 20){
-            speed = 255;    
+            speed = 100;    //100
         }
-        while(Ultra_GetDistance() < 100 && dig.l1 == 0 && dig.r1 == 0) //when enemy is infront push
+        while(Ultra_GetDistance() < 20 && dig.l1 == 0 && dig.r1 == 0) //when enemy is infront push
         {
+            speed = 50; //250
             motor_forward(speed,1);
             reflectance_digital(&dig);
+            attack = 1;
+            loopCounter = 1000;//time in milliseconds for getting back after a fight
         }
+        while (attack == 1) {
+            if (turn == 0)
+            {
+                speed=200;
+                tank_turn_left(speed,380);//#placeholder time
+                turn ++;
+            }
+            motor_forward(speed,1); //#placeholder time
+            if ((Ultra_GetDistance() < 20 || (dig.l1 == 1 && dig.r1 == 1))||loopCounter == 0)//
+            {
+                attack = 0;
+                turn --;
+                break;
+            }
+            loopCounter --;
+            
+        }
+        if (data.accX < -8000 && data.accY > 8000) //Look robot in the eyes, impact from the left front
+        {   
+            angle = (atan2(abs(data.accX),data.accY)*180/M_PI);
+            printf("%8d %8d  Impact from the left front, impact was from %8d degrees\n",data.accX, data.accY,angle );
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_backward(speed,200);//#place holder time, pakitus   
+        }
+        else if(data.accX > 8000 && data.accY > 8000) //Look robot in the eyes, impact from the left back
+        {   
+            angle = 90 + ((atan2(data.accX,data.accY))*180/M_PI);
+            printf("%8d %8d  Impact from the left back, impact was from %8d degrees\n",data.accX, data.accY, angle);
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_forward(speed,200);//#place holder time, pakitus
+           
+        }
+        else if(data.accX < -8000 && data.accY < -8000) //Look robot in the eyes, impact from the right front
+        {
+            angle = 270 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
+            printf("%8d %8d  Impact from the right front, impact was from %8d degrees\n",data.accX, data.accY,angle );
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_backward(speed,200);//#place holder time, pakitus 
+        }
+        else if(data.accX > 8000 && data.accY < -8000) //Look robot in the eyes, impact from the right back
+        {
+            angle = 180 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
+            printf("%8d %8d  Impact from the right back, impact was from %8d degree\n",data.accX, data.accY, angle);
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_forward(speed,200);//#place holder time, pakitus
         
+        } 
     }
 }   
+#endif
+#if 0 //sumo test
+    void zmain(void)
+    {
+    struct sensors_ ref;
+    struct sensors_ dig; 
+    reflectance_start();
+    int change = 1;
+    motor_start();
+    int speed = 200;
+    struct accData_ data;
+    motor_forward(0,0);
+    int angle = 0;
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+    
+    if(!LSM303D_Start()){
+        printf("LSM303D failed to initialize!!! Program is Ending!!!\n");
+        vTaskSuspend(NULL);
+    }
+    else {
+        printf("Device Ok...\n");
+    }
+    
+    while(true) //staging and waiting IR
+    {
+        motor_forward(50,1);
+        reflectance_digital(&dig);
+        
+        if(change == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1)
+        {
+            motor_forward(0,0);
+            //IR_wait();
+            vTaskDelay(3000);
+           // motor_forward(50, 1500); // drives to center of the ring #placeholder time
+            
+        }
+        break;
+    }
+    while(true){
+        motor_forward(0,0);
+     LSM303D_Read_Acc(&data);
+   if (data.accX < -8000 && data.accY > 8000) //Look robot in the eyes, impact from the left front
+        {   
+            angle = (atan2(abs(data.accX),data.accY)*180/M_PI);
+            printf("%8d %8d  Impact from the left front, impact was from %8d degrees\n",data.accX, data.accY,angle );
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_backward(speed,200);//#place holder time, pakitus   
+        }
+        else if(data.accX > 8000 && data.accY > 8000) //Look robot in the eyes, impact from the left back
+        {   
+            angle = 90 + ((atan2(data.accX,data.accY))*180/M_PI);
+            printf("%8d %8d  Impact from the left back, impact was from %8d degrees\n",data.accX, data.accY, angle);
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_forward(speed,200);//#place holder time, pakitus
+           
+        }
+        else if(data.accX < -8000 && data.accY < -8000) //Look robot in the eyes, impact from the right front
+        {
+            angle = 270 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
+            printf("%8d %8d  Impact from the right front, impact was from %8d degrees\n",data.accX, data.accY,angle );
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_backward(speed,200);//#place holder time, pakitus 
+        }
+        else if(data.accX > 8000 && data.accY < -8000) //Look robot in the eyes, impact from the right back
+        {
+            angle = 180 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
+            printf("%8d %8d  Impact from the right back, impact was from %8d degree\n",data.accX, data.accY, angle);
+            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            motor_forward(speed,200);//#place holder time, pakitus
+        
+        }  }
+    }
+    
 #endif
 
 #if 0 //tehtävä 1 vko 2
