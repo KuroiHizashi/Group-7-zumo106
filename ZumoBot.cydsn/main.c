@@ -543,7 +543,7 @@ void zmain(void)
     }
 }   
 #endif  
-#if 0 //Line follow competition
+#if 1 //Line follow competition
 void zmain(void)
 {
     int button = 1;
@@ -559,11 +559,13 @@ void zmain(void)
 
     motor_start();              // enable motor controller
     motor_forward(0,0);         // set speed to zero to stop motors
+   
     
     while (true)
     {
-        button = SW1_Read();
-        while (button == 0) //runs when button is pressed
+        //button = SW1_Read();
+        vTaskDelay(3000);
+        while (true) //runs when button is pressed
         {         
             motor_forward(150,1);
             reflectance_digital(&dig); 
@@ -586,7 +588,17 @@ void zmain(void)
                 }
                 change = 0;
             }
-             while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
+            while(dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1 && dig.l1 == 0) //Tank turn right
+            {
+                tank_turn_right(50,1);
+                reflectance_digital(&dig);
+            }
+            while(dig.l1 == 1 && dig.l2 == 1 && dig.l3 == 1 &&  dig.r1 == 0) //Tank turn left
+            {
+                tank_turn_left(50,1);
+                reflectance_digital(&dig);
+            }
+            while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
             {
                 motor_turn(15,250,20); // turn left
                 reflectance_digital(&dig);
