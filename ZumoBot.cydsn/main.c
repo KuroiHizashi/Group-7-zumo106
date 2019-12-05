@@ -57,7 +57,11 @@
 void tank_turn_left(uint8, uint32);
 void tank_turn_right(uint8, uint32);
 
+<<<<<<< HEAD
 #if 0  //Sumo Competion
+=======
+#if 0 //Sumo Competion
+>>>>>>> 4f36f8139545c261248f60307e2d1da51e08cd9a
 void zmain(void)
 {
     //initialize variables
@@ -108,69 +112,78 @@ void zmain(void)
     
     while(true) //primary program here 
     {
-            
         reflectance_digital(&dig);
         tank_turn_left(speed,1);
-        distance = Ultra_GetDistance();
-        LSM303D_Read_Acc(&data);
-        if(distance > 20)
+        speed = 100;    //100
+        
+        while(Ultra_GetDistance() < 30) //when enemy is infront push  && dig.l1 == 0 && dig.r1 == 0
         {
-            speed = 100;    //100
-        }
-        while(Ultra_GetDistance() < 20 && dig.l1 == 0 && dig.r1 == 0) //when enemy is infront push
-        {
-            speed = 50; //250
+            speed = 250; //250
             motor_forward(speed,1);
-            reflectance_digital(&dig);
             attack = 1;
-            loopCounter = 1000;//time in milliseconds for getting back after a fight
+            loopCounter = 500;//time in milliseconds for getting back after a fight
+            reflectance_digital(&dig);
+            if(dig.l1 == 1 || dig.r1 == 1)
+            {
+                break;
+            }
         }
-        while (attack == 1) {
-            if (turn == 0)
+        while (attack == 1) { //back to center(future)
+            // toimii oikein
+            if (turn == 0) //does 180 turn on first time on loop
             {
                 speed=200;
                 tank_turn_left(speed,380);//#placeholder time
+                motor_forward(speed,100);
                 turn ++;
             }
+            // toimii oikein
+            if (dig.l3 == 1 || dig.l2 == 1 || dig.l1 == 1 || dig.r1 == 1 || dig.r2 == 1 || dig.r3 == 1) //if while driving forward robot ends on black line do 180 turn
+            {
+                tank_turn_left(speed,380);//#placeholder time
+                motor_forward(speed,100);
+            }
+            
             motor_forward(speed,1); //#placeholder time
-            if ((Ultra_GetDistance() < 20 || (dig.l1 == 1 && dig.r1 == 1))||loopCounter == 0)//
+            reflectance_digital(&dig);
+            
+            if (Ultra_GetDistance() < 20 || loopCounter == 0) //breaks recentering if enemy is detected or "time" runs out
             {
                 attack = 0;
+                loopCounter = 0;
+                speed = 100;
                 turn --;
                 break;
             }
-            loopCounter --;
-            
+            loopCounter --;    
         }
+        
+        LSM303D_Read_Acc(&data);
+        
         if (data.accX < -8000 && data.accY > 8000) //Look robot in the eyes, impact from the left front
         {   
             angle = (atan2(abs(data.accX),data.accY)*180/M_PI);
             printf("%8d %8d  Impact from the left front, impact was from %8d degrees\n",data.accX, data.accY,angle );
-            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
-            motor_backward(speed,200);//#place holder time, pakitus   
-        }
-        else if(data.accX > 8000 && data.accY > 8000) //Look robot in the eyes, impact from the left back
+            //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            //motor_backward(speed,200); 
+        } else if(data.accX > 8000 && data.accY > 8000) //Look robot in the eyes, impact from the left back
         {   
             angle = 90 + ((atan2(data.accX,data.accY))*180/M_PI);
             printf("%8d %8d  Impact from the left back, impact was from %8d degrees\n",data.accX, data.accY, angle);
-            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
-            motor_forward(speed,200);//#place holder time, pakitus
-           
-        }
-        else if(data.accX < -8000 && data.accY < -8000) //Look robot in the eyes, impact from the right front
+            //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            //motor_forward(speed,200);
+        } else if(data.accX < -8000 && data.accY < -8000) //Look robot in the eyes, impact from the right front
         {
             angle = 270 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right front, impact was from %8d degrees\n",data.accX, data.accY,angle );
-            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
-            motor_backward(speed,200);//#place holder time, pakitus 
-        }
-        else if(data.accX > 8000 && data.accY < -8000) //Look robot in the eyes, impact from the right back
+            //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            //motor_backward(speed,200);
+        } else if(data.accX > 8000 && data.accY < -8000) //Look robot in the eyes, impact from the right back
         {
             angle = 180 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right back, impact was from %8d degree\n",data.accX, data.accY, angle);
-            speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
-            motor_forward(speed,200);//#place holder time, pakitus
-        
+            //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
+            //motor_forward(speed,200);
         } 
     }
 }   
@@ -534,7 +547,7 @@ void zmain(void)
     }
 }   
 #endif  
-#if 0 //tehtävä 3 vko 4 ALTERNATIVE BETTER
+#if 1 //Line follow competition
 void zmain(void)
 {
     int button = 1;
@@ -550,13 +563,15 @@ void zmain(void)
 
     motor_start();              // enable motor controller
     motor_forward(0,0);         // set speed to zero to stop motors
+   
     
     while (true)
     {
-        button = SW1_Read();
-        while (button == 0) //runs when button is pressed
+        //button = SW1_Read();
+        vTaskDelay(3000);
+        while (true) //runs when button is pressed
         {         
-            motor_forward(190,1); //korjaus robotin liikkeelle suoraan
+            motor_forward(150,1);
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
@@ -577,7 +592,17 @@ void zmain(void)
                 }
                 change = 0;
             }
-             while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
+            while(dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1 && dig.l1 == 0) //Tank turn right
+            {
+                tank_turn_right(50,1);
+                reflectance_digital(&dig);
+            }
+            while(dig.l1 == 1 && dig.l2 == 1 && dig.l3 == 1 &&  dig.r1 == 0) //Tank turn left
+            {
+                tank_turn_left(50,1);
+                reflectance_digital(&dig);
+            }
+            while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
             {
                 motor_turn(15,250,20); // turn left
                 reflectance_digital(&dig);
@@ -1454,6 +1479,187 @@ void zmain(void)
         vTaskDelay(50);
     }
  }   
+#endif
+#if 0 // Labyrintti Competition
+    void zmain(void)
+    {
+        int koordinaatisto[6][13];
+        int maali = 0;    
+        int button = 1;
+        int counter = 0;
+        int turnedLeft = 0;
+        int change = 1; // change is 1 when robot has moved over the line 
+        
+        struct sensors_ ref;
+        struct sensors_ dig;
+        
+        Ultra_Start();
+
+        reflectance_start();
+        reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+        motor_start();              // enable motor controller
+        motor_forward(0,0);         // set speed to zero to stop motors
+        
+        while (true)
+        {
+            button = SW1_Read();
+            while (button == 0) //runs when button is pressed
+            {        
+                motor_forward(50,1);
+                while(dig.l3 == 1 && dig.r3 == 0 && change == 1) //SUPRAJYRKKÄ käännös Vasemalle
+                {
+                    motor_turn(15,250,20); // turn left
+                    reflectance_digital(&dig);
+                    if(dig.l3 == 0 || dig.r3 == 0 && change == 1){ // tells program that section has been crossed
+                    change = 1;
+                }}
+                while(dig.r3 == 1 && dig.l3 == 0 && change == 1) //SUPRAJYRKKÄ käännös OIKEALLE
+                {
+                    motor_turn(250,15,20); // turn right
+                    reflectance_digital(&dig);
+                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                    change = 1;
+                }}
+                while(dig.l1 == 0 && dig.r2 == 1 && change == 1) //Jyrkkä käännös oikealle
+                {
+                    motor_turn(160,15,1); // turn right
+                    reflectance_digital(&dig);
+                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                    change = 1;
+                }}
+                while(dig.r1 == 0 && dig.l2 == 1 && change == 1) //Jyrkkä käännös vasemmalle
+                {
+                    motor_turn(15,160,1); // turn right
+                    reflectance_digital(&dig);
+                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                    change = 1;
+                }}
+                while(dig.l1 == 0 && dig.r2 == 0 && change == 1) //Loiva käännös Oikealle
+                {
+                    motor_turn(110,100,1); // turn right
+                    reflectance_digital(&dig);
+                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                    change = 1;
+                }}
+                while(dig.r1 == 0 && dig.l2 == 0 && change == 1) //Loiva käännös Vasemalle
+                {
+                    motor_turn(100,110,1); // turn left
+                    reflectance_digital(&dig);
+                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                    change = 1;
+                }}          
+                reflectance_digital(&dig);
+                if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+                {
+                    //Ultra_GetDistance();
+                    counter++;
+                    if(counter == 1) //run if first section and stops 
+                    {
+                        motor_forward(0,0);
+                        IR_wait();
+                    } else if(maali == 1) // stops program when robot reaches goal
+                    {
+                        motor_forward(0,0);
+                        button = 1;
+                        counter = 0;
+                        change = 1;
+                    }
+                    if(turnedLeft == 1) //if left was taken on last intersection turn right
+                    {
+                        tank_turn_right(200,190); // 90 degrees to right
+                        turnedLeft = 0;
+                    }
+                    if(Ultra_GetDistance() < 20 && turnedLeft == 0) //if there is obstacle try left
+                    {
+                        tank_turn_left(200,190); // 90 degrees to left
+                        if(Ultra_GetDistance() > 20)
+                        {
+                            turnedLeft = 1;
+                        }
+                    }
+                    if(Ultra_GetDistance() < 20) //if left is not clear try left
+                    {
+                        tank_turn_right(200,380); // 180 degrees to right
+                    }
+                    change = 0;
+                }
+                while(dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0) //if drives over bounds back up
+                {
+                    Ultra_GetDistance();
+                    motor_backward(50,1);
+                }
+                if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) //isolates double positive from section
+                {
+                    change = 1;
+                }     
+        }
+    }
+}
+#endif
+
+#if 0 //tehtävä 3 vko 4
+void zmain(void)
+{
+    int button = 1;
+    int counter = 0;
+    int change = 1;
+    
+    struct sensors_ ref;
+    struct sensors_ dig;
+
+    reflectance_start();
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
+
+    motor_start();              // enable motor controller
+    motor_forward(0,0);         // set speed to zero to stop motors
+    
+    while (true)
+    {
+        button = SW1_Read();
+        while (button == 0) //runs when button is pressed
+        {         
+            motor_forward(100,5);
+            reflectance_digital(&dig); 
+            //printf("%d\n", counter);
+            if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
+            {
+                counter++;
+                if(counter == 1) //run to first section and stops 
+                {
+                    motor_forward(0,0);
+                    //IR_wait();
+                    vTaskDelay(3000);
+                } else if(counter == 2)
+                {
+                    motor_forward(0,0);
+                    button = 1;
+                    counter = 0;
+                    change = 1;
+                }
+                change = 0;
+            }
+            while((dig.l3 == 0 || dig.l2 == 0) && counter >0) //turns left if one of the left sensors are black
+            {
+                motor_turn(160,15,1); // turn right
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }
+            }
+            while((dig.r2 == 0 || dig.r3 == 0) && counter >0) //turns right if one of the right sensors are black
+            {
+                motor_turn(15,160,1); // turn left
+                reflectance_digital(&dig);
+                if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                change = 1;
+            }
+                
+            }
+        }
+    }
+}
+    }    
 #endif
 
 //#perse
