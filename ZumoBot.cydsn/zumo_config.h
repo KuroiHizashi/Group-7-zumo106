@@ -5,7 +5,7 @@
 #define START_MQTT 1    
 
 /* The following definitions must all be in double quotes */
-#define NETWORK_SSID "Zumo07"
+#define NETWORK_SSID "Zumo7"
 
 #define NETWORK_PASSWORD "analthunder"
 
