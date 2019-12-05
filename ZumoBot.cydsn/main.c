@@ -1173,7 +1173,7 @@ void zmain(void)
 }
 #endif
 
-#if 1
+#if 0
 // button
 void zmain(void)
 {
