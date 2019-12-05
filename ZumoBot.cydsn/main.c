@@ -57,11 +57,9 @@
 void tank_turn_left(uint8, uint32);
 void tank_turn_right(uint8, uint32);
 
-<<<<<<< HEAD
-#if 0  //Sumo Competion
-=======
+
+
 #if 0 //Sumo Competion
->>>>>>> 4f36f8139545c261248f60307e2d1da51e08cd9a
 void zmain(void)
 {
     //initialize variables
@@ -73,6 +71,8 @@ void zmain(void)
     int loopCounter = 0;
     int angle = 0;
     int turn = 0; //integer for turning after a fight
+    int button = 0;
+    TickType_t start, end;
     struct sensors_ ref;
     struct sensors_ dig;
     struct accData_ data;
@@ -83,9 +83,10 @@ void zmain(void)
     //start sensors
     motor_start();
     motor_forward(0,0);
-    
+    start = xTaskGetTickCount();
     IR_Start();
     Ultra_Start();
+    button = SW1_Read();
     if(!LSM303D_Start()){
         printf("LSM303D failed to initialize!!! Program is Ending!!!\n");
         vTaskSuspend(NULL);
@@ -104,6 +105,7 @@ void zmain(void)
             motor_forward(0,0);
             //IR_wait();
             vTaskDelay(3000);
+            print_mqtt("ZUMO7/start", "%d", xTaskGetTickCount());// Send message to topic
             speed = 100;
             motor_forward(speed, 1500); // drives to center of the ring #placeholder time
             break;
@@ -164,27 +166,37 @@ void zmain(void)
         {   
             angle = (atan2(abs(data.accX),data.accY)*180/M_PI);
             printf("%8d %8d  Impact from the left front, impact was from %8d degrees\n",data.accX, data.accY,angle );
+            print_mqtt("ZUMO7/hit", "%d %d",xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_backward(speed,200); 
         } else if(data.accX > 8000 && data.accY > 8000) //Look robot in the eyes, impact from the left back
         {   
             angle = 90 + ((atan2(data.accX,data.accY))*180/M_PI);
             printf("%8d %8d  Impact from the left back, impact was from %8d degrees\n",data.accX, data.accY, angle);
+            print_mqtt("ZUMO7/hit", "%d %d", xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_forward(speed,200);
         } else if(data.accX < -8000 && data.accY < -8000) //Look robot in the eyes, impact from the right front
         {
             angle = 270 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right front, impact was from %8d degrees\n",data.accX, data.accY,angle );
+            print_mqtt("ZUMO7/hit", "%d %d", xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_backward(speed,200);
         } else if(data.accX > 8000 && data.accY < -8000) //Look robot in the eyes, impact from the right back
         {
             angle = 180 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right back, impact was from %8d degree\n",data.accX, data.accY, angle);
+            print_mqtt("ZUMO7/hit", "%d %d",xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_forward(speed,200);
         } 
+        while (button == 1)
+        {
+            end  = xTaskGetTickCount();
+            print_mqtt("ZUMO7/stop", "%d", (end-start));// Send message to topic
+            motor_forward(0,0);
+        }
     }
 }   
 #endif
@@ -547,7 +559,7 @@ void zmain(void)
     }
 }   
 #endif  
-#if 1 //Line follow competition
+#if 0 //Line follow competition
 void zmain(void)
 {
     int button = 1;
