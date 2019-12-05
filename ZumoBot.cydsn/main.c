@@ -57,7 +57,7 @@
 void tank_turn_left(uint8, uint32);
 void tank_turn_right(uint8, uint32);
 
-#if 1 //Sumo Competion
+#if 0  //Sumo Competion
 void zmain(void)
 {
     //initialize variables
@@ -1173,7 +1173,7 @@ void zmain(void)
 }
 #endif
 
-#if 0
+#if 1
 // button
 void zmain(void)
 {
