@@ -125,7 +125,7 @@ void zmain(void)
             attack = 1;
             loopCounter = 1000;//time in milliseconds for getting back after a fight
         }
-        while (attack == 1) {
+        while (attack == 1) { //back to center(future)
             if (turn == 0)
             {
                 speed=200;
@@ -133,6 +133,7 @@ void zmain(void)
                 turn ++;
             }
             motor_forward(speed,1); //#placeholder time
+            reflectance_digital(&dig);
             if ((Ultra_GetDistance() < 20 || (dig.l1 == 1 && dig.r1 == 1))||loopCounter == 0)//
             {
                 attack = 0;
