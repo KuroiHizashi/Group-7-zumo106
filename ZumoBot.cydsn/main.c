@@ -569,6 +569,7 @@ void zmain(void)
     int button = 1;
     int counter = 0;
     int change = 1;
+    int firstRound = 1;
     IR_Start();
     
     struct sensors_ ref;
@@ -587,53 +588,82 @@ void zmain(void)
         vTaskDelay(3000);
         while (true) //runs when button is pressed
         {         
-            motor_forward(150,1);
+            motor_forward(100,1); //80 toimii kun tank turn delay 5
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
             {
                 counter++;
+                motor_forward(50,5);
                 if(counter == 1) //run to first section and stops 
                 {
                     motor_forward(0,0);
                     //IR_wait();
                     vTaskDelay(3000);
-                } else if(counter == 2)
+                } else if(counter == 3)
                 {
                     motor_forward(0,0);
                     button = 1;
                     counter = 0;
                     change = 1;
+                    IR_wait();
                 }
                 change = 0;
             }
-            while(dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1 && dig.l1 == 0) //Tank turn right
+            /*while((dig.l2 == 1 && dig.l3 == 1)&& counter >0) //Tank turn left
             {
-                tank_turn_right(50,1);
+                if(firstRound == 1)
+                {
+                    motor_forward(0,1);
+                }
+                //Beep(1,100);
+                tank_turn_left(150,1);
                 reflectance_digital(&dig);
             }
-            while(dig.l1 == 1 && dig.l2 == 1 && dig.l3 == 1 &&  dig.r1 == 0) //Tank turn left
+            while((dig.r2 == 1 && dig.r3 == 1)&& counter >0) //Tank turn right
             {
-                tank_turn_left(50,1);
+                if(firstRound == 1)
+                {
+                    motor_forward(0,1);
+                }
+                //Beep(1,100);
+                tank_turn_right(150,1);
                 reflectance_digital(&dig);
             }
-            while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
+            firstRound = 1;
+            */while((dig.l3 == 1 && dig.r3 == 0) && counter >0) //SUPRAJYRKKÄ käännös Vasemalle
             {
-                motor_turn(15,250,20); // turn left
+                if(firstRound == 1)
+                {
+                    motor_forward(0,1);
+                }
+                //Beep(1,100);
+                tank_turn_left(150,10);
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                 change = 1;
             }}
             while((dig.r3 == 1 && dig.l3 == 0) && counter >0) //SUPRAJYRKKÄ käännös OIKEALLE
             {
-                motor_turn(250,15,20); // turn right
+                if(firstRound == 1)
+                {
+                    motor_forward(0,1);
+                }
+                //Beep(1,100);
+                tank_turn_right(150,10);
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                 change = 1;
             }}
+            firstRound = 1;
             while((dig.l1 == 0 && dig.r2 == 1) && counter >0) //Jyrkkä käännös oikealle
             {
+                if(dig.l3 == 1)
+                {
+                    break;
+                    Beep(1,100);
+                }
                 motor_turn(160,15,1); // turn right
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
@@ -641,13 +671,23 @@ void zmain(void)
             }}
             while((dig.r1 == 0 && dig.l2 == 1) && counter >0) //Jyrkkä käännös vasemmalle
             {
+                if(dig.r3 == 1)
+                {
+                    break;
+                    Beep(1,100);
+                }
                 motor_turn(15,160,1); // turn right
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                 change = 1;
             }}
-            while((dig.l1 == 0 && dig.r2 == 0) && counter >0) //Loiva käännös Oikealle
+            /*while((dig.l1 == 0 && dig.r2 == 0) && counter >0) //Loiva käännös Oikealle
             {
+                if(dig.l2 == 1)
+                {
+                    Beep(1,100);
+                    break;  
+                }
                 motor_turn(110,100,1); // turn right
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
@@ -655,11 +695,16 @@ void zmain(void)
             }}
             while((dig.r1 == 0 && dig.l2 == 0) && counter >0) //Loiva käännös Vasemalle
             {
+                if(dig.r2 == 1)
+                {
+                    Beep(1,100);
+                    break;
+                }
                 motor_turn(100,110,1); // turn left
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                 change = 1;
-            }}          
+            }}*/
         }
     }
 }
