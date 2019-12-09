@@ -1563,7 +1563,9 @@ void zmain(void)
         int maali = 0;    
         int button = 1;
         int counter = 0;
+        int muuttuja=0;
         int turnedLeft = 0;
+        int changetwo = 0;
         int change = 1; // change is 1 when robot has moved over the line 
         
         struct sensors_ ref;
@@ -1588,14 +1590,14 @@ void zmain(void)
                 
                 while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //Loiva käännös Oikealle
                 {
-                    motor_turn(110,100,1); // turn right
+                    motor_turn(110,80,1); // turn right
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
                 }}
                 while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //Loiva käännös Vasemalle
                 {
-                    motor_turn(100,110,1); // turn left
+                    motor_turn(80,110,1); // turn left
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
@@ -1620,20 +1622,68 @@ void zmain(void)
                     }
                     if(turnedLeft == 1) //if left was taken on last intersection turn right
                     {
-                        tank_turn_right(100,450); // 90 degrees to right
+                       // tank_turn_right(100,450); // 90 degrees to right
+                        while(true)
+                        {
+                            reflectance_digital(&dig);
+                            if(dig.l1 == 0 && dig.r1 == 0)
+                            {
+                                changetwo=1;
+                            }
+                            if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                            {
+                                changetwo=0;
+                                break;
+                            }
+                            
+                            tank_turn_right(100,1);
+                        }
                         turnedLeft = 0;
                     }
                     if(Ultra_GetDistance() < 20 && turnedLeft == 0) //if there is obstacle try left
                     {
-                        tank_turn_left(100,450); // 90 degrees to left
+                        //tank_turn_left(100,450); // 90 degrees to left
+                        while(true)
+                        {
+                            reflectance_digital(&dig);
+                             if(dig.l1 == 0 && dig.r1 == 0)
+                            {
+                                changetwo=1;
+                            }
+                            if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                            {
+                                changetwo=0;
+                                break;
+                            }
+                            tank_turn_left(100,1);
+                        }
+                       
                         if(Ultra_GetDistance() > 20)
                         {
                             turnedLeft = 1;
                         }
                     }
-                    if(Ultra_GetDistance() < 20) //if left is not clear try left
+                    if(Ultra_GetDistance() < 20) //if left is not clear try right
                     {
-                        tank_turn_right(100,760); // 180 degrees to right
+                        //tank_turn_right(100,760); // 180 degrees to right
+                        while(true)
+                        {
+                            reflectance_digital(&dig);
+                             if(dig.l1 == 0 && dig.r1 == 0)
+                            {
+                                changetwo=1;
+                            }
+                            if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 0 && changetwo==1)
+                            {
+                                muuttuja++;
+                            }else if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 1 && changetwo==1)
+                            {
+                                changetwo=0;
+                                break;
+                            }
+                            tank_turn_right(100,1);
+                        }
+                        
                     }
                     change = 0;
                 }
