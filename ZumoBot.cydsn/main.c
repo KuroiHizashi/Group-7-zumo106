@@ -56,6 +56,7 @@
 */
 void tank_turn_left(uint8, uint32);
 void tank_turn_right(uint8, uint32);
+double getDistance(void);
 
 //Pitää ottaa distance sensoreista keskiarvo koska tulee välillä luvut hyppelee, jonka takia while loop breikkaa. 
 //Esim otetaan 10 arvoa ja niistä keskiarvo jota käytetään while loopin ehto vertauksessa.
@@ -119,12 +120,25 @@ void zmain(void)
         tank_turn_left(speed,1);
         speed = 100;    //100
         
-        while(Ultra_GetDistance() < 30) //when enemy is infront push  && dig.l1 == 0 && dig.r1 == 0
+        while(getDistance() < 30) //when enemy is infront push  && dig.l1 == 0 && dig.r1 == 0
         {
             speed = 250; //250
-            motor_forward(speed,1);
             attack = 1;
-            loopCounter = 300;//time in milliseconds for getting back after a fight 500
+            loopCounter = 500;//time in milliseconds for getting back after a fight 500
+            if (getDistance() < 10)
+            {
+                while (true)
+                {   
+                    motor_forward(speed,1);
+                    reflectance_digital(&dig);
+                    if(dig.l1 == 1 || dig.r1 == 1)
+                    {
+                        break;
+                    }
+                }
+                break;
+            }
+            motor_forward(speed,1);
             reflectance_digital(&dig);
             if(dig.l1 == 1 || dig.r1 == 1)
             {
@@ -151,7 +165,7 @@ void zmain(void)
             motor_forward(speed,1); //#placeholder time
             reflectance_digital(&dig);
             
-            if (Ultra_GetDistance() < 20 || loopCounter == 0) //breaks recentering if enemy is detected or "time" runs out
+            if (getDistance() < 20 || loopCounter == 0) //breaks recentering if enemy is detected or "time" runs out
             {
                 attack = 0;
                 loopCounter = 0;
@@ -164,28 +178,28 @@ void zmain(void)
         
         LSM303D_Read_Acc(&data);
         
-        if (data.accX < -8000 && data.accY > 8000) //Look robot in the eyes, impact from the left front
+        if (data.accX < -5000 && data.accY > 5000) //Look robot in the eyes, impact from the left front
         {   
             angle = (atan2(abs(data.accX),data.accY)*180/M_PI);
             printf("%8d %8d  Impact from the left front, impact was from %8d degrees\n",data.accX, data.accY,angle );
             print_mqtt("ZUMO7/hit", "%d %d Impact from the left front",xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_backward(speed,200); 
-        } else if(data.accX > 8000 && data.accY > 8000) //Look robot in the eyes, impact from the left back
+        } else if(data.accX > 5000 && data.accY > 5000) //Look robot in the eyes, impact from the left back
         {   
             angle = 90 + ((atan2(data.accX,data.accY))*180/M_PI);
             printf("%8d %8d  Impact from the left back, impact was from %8d degrees\n",data.accX, data.accY, angle);
             print_mqtt("ZUMO7/hit", "%d %d Impact from the left back", xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_forward(speed,200);
-        } else if(data.accX < -8000 && data.accY < -8000) //Look robot in the eyes, impact from the right front
+        } else if(data.accX < -5000 && data.accY < -5000) //Look robot in the eyes, impact from the right front
         {
             angle = 270 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right front, impact was from %8d degrees\n",data.accX, data.accY,angle );
             print_mqtt("ZUMO7/hit", "%d %d Impact from the right front", xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_backward(speed,200);
-        } else if(data.accX > 8000 && data.accY < -8000) //Look robot in the eyes, impact from the right back
+        } else if(data.accX > 5000 && data.accY < -5000) //Look robot in the eyes, impact from the right back
         {
             angle = 180 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right back, impact was from %8d degree\n",data.accX, data.accY, angle);
@@ -1300,8 +1314,9 @@ void zmain(void)
     while(true) {
         int d = Ultra_GetDistance();
         // Print the detected distance (centimeters)
-        printf("distance = %d\r\n", d);
-        vTaskDelay(200);
+        //printf("distance = %d\r\n", d);
+        printf("%f\n",getDistance());
+        vTaskDelay(200); //200
     }
 }   
 #endif
@@ -1568,42 +1583,17 @@ void zmain(void)
             while (button == 0) //runs when button is pressed
             {        
                 motor_forward(50,1);
-                while(dig.l3 == 1 && dig.r3 == 0 && change == 1) //SUPRAJYRKKÄ käännös Vasemalle
-                {
-                    motor_turn(15,250,20); // turn left
-                    reflectance_digital(&dig);
-                    if(dig.l3 == 0 || (dig.r3 == 0 && change == 1)){ // tells program that section has been crossed
-                    change = 1;
-                }}
-                while(dig.r3 == 1 && dig.l3 == 0 && change == 1) //SUPRAJYRKKÄ käännös OIKEALLE
-                {
-                    motor_turn(250,15,20); // turn right
-                    reflectance_digital(&dig);
-                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
-                    change = 1;
-                }}
-                while(dig.l1 == 0 && dig.r2 == 1 && change == 1) //Jyrkkä käännös oikealle
-                {
-                    motor_turn(160,15,1); // turn right
-                    reflectance_digital(&dig);
-                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
-                    change = 1;
-                }}
-                while(dig.r1 == 0 && dig.l2 == 1 && change == 1) //Jyrkkä käännös vasemmalle
-                {
-                    motor_turn(15,160,1); // turn right
-                    reflectance_digital(&dig);
-                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
-                    change = 1;
-                }}
-                while(dig.l1 == 0 && dig.r2 == 0 && change == 1) //Loiva käännös Oikealle
+                reflectance_digital(&dig);
+                
+                
+                while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //Loiva käännös Oikealle
                 {
                     motor_turn(110,100,1); // turn right
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
                 }}
-                while(dig.r1 == 0 && dig.l2 == 0 && change == 1) //Loiva käännös Vasemalle
+                while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //Loiva käännös Vasemalle
                 {
                     motor_turn(100,110,1); // turn left
                     reflectance_digital(&dig);
@@ -1615,10 +1605,12 @@ void zmain(void)
                 {
                     //Ultra_GetDistance();
                     counter++;
+                    motor_forward(50, 500);
                     if(counter == 1) //run if first section and stops 
                     {
                         motor_forward(0,0);
-                        IR_wait();
+                        vTaskDelay(500);
+                        //IR_wait();
                     } else if(maali == 1) // stops program when robot reaches goal
                     {
                         motor_forward(0,0);
@@ -1628,12 +1620,12 @@ void zmain(void)
                     }
                     if(turnedLeft == 1) //if left was taken on last intersection turn right
                     {
-                        tank_turn_right(200,190); // 90 degrees to right
+                        tank_turn_right(100,450); // 90 degrees to right
                         turnedLeft = 0;
                     }
                     if(Ultra_GetDistance() < 20 && turnedLeft == 0) //if there is obstacle try left
                     {
-                        tank_turn_left(200,190); // 90 degrees to left
+                        tank_turn_left(100,450); // 90 degrees to left
                         if(Ultra_GetDistance() > 20)
                         {
                             turnedLeft = 1;
@@ -1641,13 +1633,13 @@ void zmain(void)
                     }
                     if(Ultra_GetDistance() < 20) //if left is not clear try left
                     {
-                        tank_turn_right(200,380); // 180 degrees to right
+                        tank_turn_right(100,760); // 180 degrees to right
                     }
                     change = 0;
                 }
                 while(dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0) //if drives over bounds back up
                 {
-                    Ultra_GetDistance();
+                    reflectance_digital(&dig);
                     motor_backward(50,1);
                 }
                 if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) //isolates double positive from section
@@ -1740,5 +1732,23 @@ void tank_turn_right(uint8 speed,uint32 delay)
     PWM_WriteCompare2(speed); 
     vTaskDelay(delay);
 }
-
+double getDistance(void)
+{
+    double summa = 0.0;
+    int array[10];
+    double keskiarvo = 0.0;
+    
+    for(int i = 0; i < 10; i++)
+    {
+        array[i] = Ultra_GetDistance();
+    }
+    for(int i = 0; i < 10; i++)
+    {
+        summa += array[i]; 
+    }
+    keskiarvo = summa/10;
+    
+    return keskiarvo;
+    
+}
 /* [] END OF FILE */
