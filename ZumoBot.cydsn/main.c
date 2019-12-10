@@ -602,14 +602,14 @@ void zmain(void)
         vTaskDelay(3000);
         while (true) //runs when button is pressed
         {         
-            motor_forward(250,1); //80 toimii kun tank turn delay 5
+            motor_forward(150,1); //80 toimii kun tank turn delay 5
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
             {
                 counter++;
-                motor_forward(50,5);
+                motor_forward(100,5);
                 if(counter == 1) //run to first section and stops 
                 {
                     motor_forward(0,0);
