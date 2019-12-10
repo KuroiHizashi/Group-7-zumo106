@@ -602,7 +602,7 @@ void zmain(void)
         vTaskDelay(3000);
         while (true) //runs when button is pressed
         {         
-            motor_forward(150,1); //80 toimii kun tank turn delay 5
+            motor_forward(140,1); //120 toimii kun tank turn delay 5
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
