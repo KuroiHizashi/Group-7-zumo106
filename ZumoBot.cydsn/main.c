@@ -577,7 +577,7 @@ void zmain(void)
     }
 }   
 #endif  
-#if 0 //Line follow competition
+#if 1 //Line follow competition
 void zmain(void)
 {
     int button = 1;
@@ -602,7 +602,7 @@ void zmain(void)
         vTaskDelay(3000);
         while (true) //runs when button is pressed
         {         
-            motor_forward(100,1); //80 toimii kun tank turn delay 5
+            motor_forward(250,1); //80 toimii kun tank turn delay 5
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
@@ -1556,7 +1556,7 @@ void zmain(void)
     }
  }   
 #endif
-#if 1 // Labyrintti Competition
+#if 0 // Labyrintti Competition
     void zmain(void)
     {
         int koordinaatisto[6][13];
