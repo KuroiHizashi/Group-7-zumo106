@@ -577,14 +577,17 @@ void zmain(void)
     }
 }   
 #endif  
+
 #if 1 //Line follow competition
 void zmain(void)
 {
     int button = 1;
     int counter = 0;
     int change = 1;
+    int oppakone = 0;
     int firstRound = 1;
     IR_Start();
+    TickType_t start, end, miss, line;
     
     struct sensors_ ref;
     struct sensors_ dig;
@@ -600,8 +603,10 @@ void zmain(void)
     {
         //button = SW1_Read();
         vTaskDelay(3000);
+        start = xTaskGetTickCount();
+        print_mqtt("ZUMO7/start", "%d", xTaskGetTickCount());// Send message to topic
         while (true) //runs when button is pressed
-        {         
+        {   
             motor_forward(140,1); //120 toimii kun tank turn delay 5
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
@@ -618,6 +623,9 @@ void zmain(void)
                 } else if(counter == 3)
                 {
                     motor_forward(0,0);
+                    end  = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/stop", "%d", (end));// Send message to topic
+                    print_mqtt("ZUMO7/lap time", "%d", (end-start));// Send message to topic
                     button = 1;
                     counter = 0;
                     change = 1;
@@ -652,6 +660,18 @@ void zmain(void)
                 {
                     motor_forward(0,1);
                 }
+                if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
+                {   
+                    miss = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    oppakone=1;
+                }
+                if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
+                {   
+                    line = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    oppakone=0;
+                }
                 //Beep(1,100);
                 tank_turn_left(150,10);
                 reflectance_digital(&dig);
@@ -663,6 +683,18 @@ void zmain(void)
                 if(firstRound == 1)
                 {
                     motor_forward(0,1);
+                }
+                if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
+                {   
+                    miss = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    oppakone=1;
+                }
+                if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
+                {   
+                    line = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    oppakone=0;
                 }
                 //Beep(1,100);
                 tank_turn_right(150,10);
@@ -678,6 +710,18 @@ void zmain(void)
                     break;
                     Beep(1,100);
                 }
+                if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
+                {   
+                    miss = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    oppakone=1;
+                }
+                if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
+                {   
+                    line = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    oppakone=0;
+                }
                 motor_turn(160,15,1); // turn right
                 reflectance_digital(&dig);
                 if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
@@ -689,6 +733,18 @@ void zmain(void)
                 {
                     break;
                     Beep(1,100);
+                }
+                if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
+                {   
+                    miss = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    oppakone=1;
+                }
+                if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
+                {   
+                    line = xTaskGetTickCount();
+                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    oppakone=0;
                 }
                 motor_turn(15,160,1); // turn right
                 reflectance_digital(&dig);
