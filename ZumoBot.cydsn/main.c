@@ -1610,7 +1610,6 @@ void zmain(void)
 #if 1 // Labyrintti Competition
     void zmain(void)
     {
-        int koordinaatisto[6][13];
         int maali = 0;    
         int button = 1;
         int counter = 0;
@@ -1620,6 +1619,10 @@ void zmain(void)
         int change = 1; // change is 1 when robot has moved over the line 
         int x = 0;
         int y = 0;
+        int back = 0;
+        int forward = 1;
+        int uTurn = 0;
+        int approachAngle = 0; // get negative value if comming from left and positive if from right
         
         struct sensors_ ref;
         struct sensors_ dig;
@@ -1640,17 +1643,16 @@ void zmain(void)
                 motor_forward(50,1);
                 reflectance_digital(&dig);
                 
-                
-                while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //Loiva käännös Oikealle Keskitys
+                while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //slight right
                 {
-                    motor_turn(110,75,1); // turn right
+                    motor_turn(100,65,1); // turn right
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
                 }}
-                while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //Loiva käännös Vasemalle Keskitys
+                while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //slight left
                 {
-                    motor_turn(75,110,1); // turn left
+                    motor_turn(65,100,1); // turn left
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
@@ -1658,8 +1660,81 @@ void zmain(void)
                 reflectance_digital(&dig);
                 if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
                 {
-                    //Ultra_GetDistance();
                     counter++;
+                    if (y == 11) // finnishline sequence
+                    {
+                        if(x < 0) // turn right
+                        {
+                            while(true)
+                            {
+                                reflectance_digital(&dig);
+                                if(dig.l1 == 0 && dig.r1 == 0)
+                                {
+                                    changetwo=1;
+                                }
+                                if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                                {
+                                    changetwo=0;
+                                    break;
+                                }
+                                
+                                tank_turn_right(100,1);                            
+                            }
+                            approachAngle = -1;
+                            x++;
+                            
+                        }else if(x > 0) // turn left
+                        {
+                            while(true)
+                            {
+                                reflectance_digital(&dig);
+                                if(dig.l1 == 0 && dig.r1 == 0)
+                                {
+                                    changetwo=1;
+                                }
+                                if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                                {
+                                    changetwo=0;
+                                    break;
+                                }
+                                tank_turn_left(100,1); //Left turn
+                            }
+                            approachAngle = 1;
+                            x--;
+                        }else if(x == 0 && forward == 0){ //when x = 0 drive to finnish
+                            while (true)
+                            {
+                                while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //Loiva käännös Oikealle Keskitys
+                                {
+                                    motor_turn(100,65,1); // turn right
+                                    reflectance_digital(&dig);
+                                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                                    change = 1;
+                                }}
+                                while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //Loiva käännös Vasemalle Keskitys
+                                {
+                                    motor_turn(65,100,1); // turn left
+                                    reflectance_digital(&dig);
+                                    if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
+                                    change = 1;
+                                }}     
+                            }
+                            motor_forward(100, 1);
+                            if (dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0)
+                            {
+                                motor_forward(0,0);
+                                IR_wait();
+                            }
+                        } 
+                    }
+                    if (counter > 1 && forward == 1)
+                    {
+                        y++;
+                    }
+                    if(back > 0)
+                    {
+                        back--;
+                    }
                     motor_forward(50, 500);
                     if(counter == 1) //run if first section and stops 
                     {
@@ -1673,8 +1748,9 @@ void zmain(void)
                         counter = 0;
                         change = 1;
                     }
-                    if(turnedLeft == 1) //if left was taken on last intersection turn right
+                    if(turnedLeft == 1 && back == 0) //if left was taken on last intersection turn right
                     {
+                        forward = 0;
                        // tank_turn_right(100,450); // 90 degrees to right
                         while(true)
                         {
@@ -1691,15 +1767,15 @@ void zmain(void)
                             
                             tank_turn_right(100,1);                            
                         }
-                        if (Ultra_GetDistance() > 20)
+                        if (getDistance() > 20) //if right is clear
                         {
                             turnedLeft = 0;
-                            y++;
-                            //print_mqtt("ZUMO7/menin ylos", "%d", y);// Send message to topic debugging code
+                            forward = 1;
                         }
                     }
-                    if(Ultra_GetDistance() < 20 && turnedLeft == 0) //if there is obstacle try left
+                    if(getDistance() < 20 && turnedLeft == 0 && back == 0) //if there is obstacle try left
                     {
+                        forward = 0;
                         //tank_turn_left(100,450); // 90 degrees to left
                         while(true)
                         {
@@ -1716,14 +1792,38 @@ void zmain(void)
                             tank_turn_left(100,1); //Left turn
                         }
                        
-                        if(Ultra_GetDistance() > 20) //no obstacle on left
+                        if(getDistance() > 20) //no obstacle on left
                         {
-                            turnedLeft = 1;
-                            x--;
-                            //print_mqtt("ZUMO7/menin vasemmalle", "%d", x);// Send message to topic debugging code
+                            x--;                           
+                        }
+                        turnedLeft = 1;
+                    }
+                    if(back == 0 && uTurn == 1) // after 180 degree turn right try left
+                    {
+                        forward = 0;
+                        while(true)
+                        {
+                            reflectance_digital(&dig);
+                             if(dig.l1 == 0 && dig.r1 == 0)
+                            {
+                                changetwo=1;
+                            }
+                            if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                            {
+                                changetwo=0;
+                                break;
+                            }
+                            tank_turn_left(100,1); //Left turn
+                        }
+                        
+                        if(getDistance() > 20)
+                        {    
+                            uTurn = 0;
+                            x++;
+                            forward = 1;
                         }
                     }
-                    if(Ultra_GetDistance() < 20) //if left is not clear try right
+                    if(getDistance() < 10 && back == 0) //if left is not clear try right
                     {
                         //tank_turn_right(100,760); // 180 degrees to right
                         while(true)
@@ -1733,14 +1833,17 @@ void zmain(void)
                             {
                                 changetwo=1;
                             }
-                            if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 0 && changetwo==1)
+                            if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 0 && changetwo==1) //detects 90 degree turn
                             {
-                                muuttuja++;
-                            }else if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 1 && changetwo==1)
+                                muuttuja=1;
+                            }else if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 1 && changetwo==1)//detects 180 degree turn
                             {
-                                changetwo=0;
+                                changetwo = 0;
+                                muuttuja = 0;
                                 x++;
-                                //print_mqtt("ZUMO7/menin oikealle", "%d", x);// Send message to topic debugging code
+                                back = 2;
+                                turnedLeft=0;
+                                uTurn = 1;                                
                                 break;
                             }
                             tank_turn_right(100,1); 
@@ -1748,6 +1851,7 @@ void zmain(void)
                         
                     }
                     change = 0;
+                    print_mqtt("ZUMO7/menin ylos", "%d y %d x", y, x);// Send message to topic debugging code
                 }
                 while(dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0) //if drives over bounds back up
                 {
