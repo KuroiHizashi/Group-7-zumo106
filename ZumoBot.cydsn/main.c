@@ -217,7 +217,8 @@ void zmain(void)
         }
     }
 }   
-#endif
+#endif  //Sumo Competion
+
 #if 0 //sumo test
     void zmain(void)
     {
@@ -290,7 +291,7 @@ void zmain(void)
         }  }
     }
     
-#endif
+#endif //sumo test
 
 #if 0 //tehtävä 1 vko 2
 
@@ -322,7 +323,7 @@ void zmain(void)
         }
     }  
  }   
-#endif
+#endif //tehtävä 1 vko 2
 
 #if 0  //vko 5 tehtävä 3
  void zmain(void)
@@ -387,7 +388,8 @@ void zmain(void)
     
     
     
-#endif
+#endif //vko 5 tehtävä 3
+
 #if 0 //tehtävä 3 vko 5 //Ei toimiva tehtävä 5
 void zmain(void)
 {
@@ -467,7 +469,7 @@ void zmain(void)
     }
 }
 
-#endif
+#endif //tehtävä 3 vko 5 //Ei toimiva tehtävä 5
 
 #if 0 //tehtävä 2 vko 5
 void zmain(void)
@@ -516,7 +518,7 @@ while (run == 1)
     //printf("distance = %d\r\n", d);   
 }   
 }   
-#endif
+#endif //tehtävä 2 vko 5
 
 #if 0 //tehtävä 1 vko 5 //need to configure mqqt connection
 
@@ -558,7 +560,7 @@ void zmain(void)
         vTaskDelay(50);
     }
 }   
-#endif
+#endif //tehtävä 1 vko 5 //need to configure mqqt connection
 
 #if 0 //testi korjaus robotin liikkeelle
 void zmain(void)
@@ -576,9 +578,9 @@ void zmain(void)
         }
     }
 }   
-#endif  
+#endif //testi korjaus robotin liikkeelle
 
-#if 1 //Line follow competition
+#if 0 //Line follow competition
 void zmain(void)
 {
     int button = 1;
@@ -669,7 +671,7 @@ void zmain(void)
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 //Beep(1,100);
@@ -693,7 +695,7 @@ void zmain(void)
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 //Beep(1,100);
@@ -719,7 +721,7 @@ void zmain(void)
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 motor_turn(160,15,1); // turn right
@@ -743,7 +745,7 @@ void zmain(void)
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 motor_turn(15,160,1); // turn right
@@ -778,8 +780,7 @@ void zmain(void)
         }
     }
 }
-#endif
-
+#endif //line following competiton
 
 #if 0
 /* Example of how to use te Accelerometer!!!*/
@@ -804,7 +805,7 @@ void zmain(void)
         vTaskDelay(50);
     }
  }   
-#endif    
+#endif //Example how to use accelometer   
 
 #if 0 //tehtävä 1 vko 4
 void zmain(void)
@@ -861,7 +862,7 @@ void zmain(void)
     }
 }
 
-#endif
+#endif //tehtävä 1 vko 4
 
 #if 0 //tehtävä 2 vko 4 VALMIS
 void zmain(void)
@@ -963,7 +964,7 @@ void zmain(void)
         }
     }
 }
-#endif
+#endif //tehtävä 2 vko 4 VALMIS
 
 #if 0 //tehtävä 3 vko 4
 void zmain(void)
@@ -1026,7 +1027,7 @@ void zmain(void)
         }
     }
 }
-#endif
+#endif //tehtävä 3 vko 4
 
 #if 0 //tehtävä 3 vko 3 (Matka Mordoriin) VALMIS
 void zmain(void)
@@ -1075,7 +1076,7 @@ motor_forward(0,0);         // set speed to zero to stop motors
       vTaskDelay(100);
    }
 }   
-#endif
+#endif //tehtävä 3 vko 3 (Matka Mordoriin) VALMIS
 
 #if 0 //tehtävä 1 vko 3
 void zmain(void)
@@ -1103,7 +1104,7 @@ while(true)
     }
 }
 }   
-#endif
+#endif //tehtävä 1 vko 3
 
 #if 0 //tehtävä 2 vko 3
 void zmain(void)
@@ -1129,7 +1130,7 @@ while (run == 1)
     //printf("distance = %d\r\n", d);   
 }   
 }   
-#endif
+#endif //tehtävä 2 vko 3
 
 #if 0 //tehtävä 2 vko 2
 void zmain(void)
@@ -1190,7 +1191,7 @@ void zmain(void)
     vTaskDelay(100);
     }
 }
-#endif
+#endif //tehtävä 2 vko 2
 
 #if 0 //testi
 void zmain(void)
@@ -1206,7 +1207,7 @@ void zmain(void)
     } 
     BatteryLed_Write(0); // Switch led off 
 }   
-#endif
+#endif //testi
 
 #if 0
 // Hello World!
@@ -1219,7 +1220,7 @@ void zmain(void)
         vTaskDelay(100); // sleep (in an infinite loop)
     }
  }   
-#endif
+#endif // Hello World!
 
 #if 0
 // Name and age
@@ -1246,8 +1247,7 @@ void zmain(void)
         vTaskDelay(100);
     }
  }   
-#endif
-
+#endif // Name and age
 
 #if 0 //tehtävä 3 vko 2
 //battery level//
@@ -1302,7 +1302,7 @@ void zmain(void)
     
     
  }   
-#endif
+#endif //tehtävä 3 vko 2
 
 #if 0
 // button
@@ -1327,7 +1327,7 @@ void zmain(void)
         }
     }
 }
-#endif
+#endif // button
 
 #if 0
 // button
@@ -1358,8 +1358,7 @@ void zmain(void)
         }        
     }
  }   
-#endif
-
+#endif // button
 
 #if 0
 //ultrasonic sensor//
@@ -1375,7 +1374,7 @@ void zmain(void)
         vTaskDelay(200); //200
     }
 }   
-#endif
+#endif //ultrasonic sensor//
 
 #if 0
 //IR receiverm - how to wait for IR remote commands
@@ -1399,9 +1398,7 @@ void zmain(void)
         else printf("Led is OFF\n");
     }    
  }   
-#endif
-
-
+#endif //IR receiverm - how to wait for IR remote commands
 
 #if 0
 //IR receiver - read raw data
@@ -1427,8 +1424,7 @@ void zmain(void)
         }
     }    
  }   
-#endif
-
+#endif //IR receiver - read raw data
 
 #if 0
 //reflectance
@@ -1457,8 +1453,7 @@ void zmain(void)
         vTaskDelay(200);
     }
 }   
-#endif
-
+#endif //reflectance
 
 #if 0
 //motor
@@ -1483,7 +1478,7 @@ void zmain(void)
         vTaskDelay(100);
     }
 }
-#endif
+#endif //motor
 
 #if 0
 /* Example of how to use te Accelerometer!!!*/
@@ -1512,7 +1507,7 @@ void zmain(void)
         vTaskDelay(50);
     }
  }   
-#endif    
+#endif /* Example of how to use te Accelerometer!!!*/  
 
 #if 0
 // MQTT test
@@ -1535,8 +1530,7 @@ void zmain(void)
         ctr++;
     }
  }   
-#endif
-
+#endif // MQTT test
 
 #if 0
 void zmain(void)
@@ -1611,8 +1605,9 @@ void zmain(void)
         vTaskDelay(50);
     }
  }   
-#endif
-#if 0 // Labyrintti Competition
+#endif // start real time clock
+
+#if 1 // Labyrintti Competition
     void zmain(void)
     {
         int koordinaatisto[6][13];
@@ -1623,6 +1618,8 @@ void zmain(void)
         int turnedLeft = 0;
         int changetwo = 0;
         int change = 1; // change is 1 when robot has moved over the line 
+        int x = 0;
+        int y = 0;
         
         struct sensors_ ref;
         struct sensors_ dig;
@@ -1644,16 +1641,16 @@ void zmain(void)
                 reflectance_digital(&dig);
                 
                 
-                while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //Loiva käännös Oikealle
+                while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //Loiva käännös Oikealle Keskitys
                 {
-                    motor_turn(110,80,1); // turn right
+                    motor_turn(110,75,1); // turn right
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
                 }}
-                while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //Loiva käännös Vasemalle
+                while(((dig.r1 == 0 && dig.l1 == 1) || (dig.r2 == 0 && dig.l1 == 1)) && change == 1) //Loiva käännös Vasemalle Keskitys
                 {
-                    motor_turn(80,110,1); // turn left
+                    motor_turn(75,110,1); // turn left
                     reflectance_digital(&dig);
                     if(dig.l3 == 0 || dig.r3 == 0){ // tells program that section has been crossed
                     change = 1;
@@ -1692,9 +1689,14 @@ void zmain(void)
                                 break;
                             }
                             
-                            tank_turn_right(100,1);
+                            tank_turn_right(100,1);                            
                         }
-                        turnedLeft = 0;
+                        if (Ultra_GetDistance() > 20)
+                        {
+                            turnedLeft = 0;
+                            y++;
+                            //print_mqtt("ZUMO7/menin ylos", "%d", y);// Send message to topic debugging code
+                        }
                     }
                     if(Ultra_GetDistance() < 20 && turnedLeft == 0) //if there is obstacle try left
                     {
@@ -1711,12 +1713,14 @@ void zmain(void)
                                 changetwo=0;
                                 break;
                             }
-                            tank_turn_left(100,1);
+                            tank_turn_left(100,1); //Left turn
                         }
                        
-                        if(Ultra_GetDistance() > 20)
+                        if(Ultra_GetDistance() > 20) //no obstacle on left
                         {
                             turnedLeft = 1;
+                            x--;
+                            //print_mqtt("ZUMO7/menin vasemmalle", "%d", x);// Send message to topic debugging code
                         }
                     }
                     if(Ultra_GetDistance() < 20) //if left is not clear try right
@@ -1735,9 +1739,11 @@ void zmain(void)
                             }else if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 1 && changetwo==1)
                             {
                                 changetwo=0;
+                                x++;
+                                //print_mqtt("ZUMO7/menin oikealle", "%d", x);// Send message to topic debugging code
                                 break;
                             }
-                            tank_turn_right(100,1);
+                            tank_turn_right(100,1); 
                         }
                         
                     }
@@ -1755,7 +1761,7 @@ void zmain(void)
         }
     }
 }
-#endif
+#endif // Labyrintti Competition
 
 #if 0 //tehtävä 3 vko 4
 void zmain(void)
@@ -1819,7 +1825,7 @@ void zmain(void)
     }
 }
     }    
-#endif
+#endif //tehtävä 3 vko 4
 
 //#perse
 void tank_turn_left(uint8 speed,uint32 delay)
@@ -1838,6 +1844,7 @@ void tank_turn_right(uint8 speed,uint32 delay)
     PWM_WriteCompare2(speed); 
     vTaskDelay(delay);
 }
+
 double getDistance(void)
 {
     double summa = 0.0;
