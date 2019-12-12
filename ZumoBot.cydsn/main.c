@@ -492,10 +492,11 @@ void zmain(void)
                                 changetwo=0;
                                 break;
                             }
-                            tank_turn_right(100,1);                            
-                            approachAngle = -1;
-                            x++;
+                            tank_turn_right(100,1);
                         }
+                        approachAngle = -1;
+                        x++;
+                        forward = 0;
                     } else if(x > 0) // turn to middle from right
                     {
                         while(true)
@@ -514,7 +515,8 @@ void zmain(void)
                         }
                         approachAngle = 1;
                         x--;
-                    }else if(x == 0 && forward == 1)
+                        forward = 0;
+                    } else if(x == 0 && forward == 1)
                     { //when x = 0 drive to finnish
                         while (true)
                         {
@@ -537,14 +539,86 @@ void zmain(void)
                                 }
                             }     
                         }
-                    }    
+                    } else if(x == 0 && forward == 0 && approachAngle == -1){// 90degree turn to right when reahing x:0
+                        while(true)
+                        {
+                            reflectance_digital(&dig);
+                            if(dig.l1 == 0 && dig.r1 == 0)
+                            {
+                                changetwo=1;
+                            }
+                            if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                            {
+                                changetwo=0;
+                                break;
+                            }
+                            tank_turn_right(100,1);//right turn
+                        }
+                        forward = 1;
+                        y++;
+                    } else if(x == 0 && forward == 0 && approachAngle == 1){// 90degree turn to left when reahing x:0
+                        while(true)
+                        {
+                            reflectance_digital(&dig);
+                            if(dig.l1 == 0 && dig.r1 == 0)
+                            {
+                                changetwo=1;
+                            }
+                            if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                            {
+                                changetwo=0;
+                                break;
+                            }
+                            tank_turn_left(100,1); //Left turn
+                        }
+                        forward = 1;
+                        y++;
+                    }
                     motor_forward(100, 1);
                     if (dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0)
                     {
                         motor_forward(0,0);
                         IR_wait();
                     }
-                } 
+                }
+                if (x == -3 && (getDistance() < 20)) // if robot is on the far left and there is obstacle turn to center
+                {
+                    forward = 0;
+                    back = 3;
+                    while(true)
+                    {
+                        reflectance_digital(&dig);
+                        if(dig.l1 == 0 && dig.r1 == 0)
+                        {
+                            changetwo=1;
+                        }
+                        if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                        {
+                            changetwo=0;
+                            break;
+                        }
+                        tank_turn_right(100,1); //turn right
+                    }
+                }
+                if (x == 3 && (getDistance() < 20)) // if robot is on the far right and there is obstacle turn to center
+                {
+                    forward = 0;
+                    back = 3;
+                    while(true)
+                    {
+                        reflectance_digital(&dig);
+                        if(dig.l1 == 0 && dig.r1 == 0)
+                        {
+                            changetwo=1;
+                        }
+                        if(dig.l1 == 1 && dig.r1 == 1 && changetwo==1)
+                        {
+                            changetwo=0;
+                            break;
+                        }
+                        tank_turn_right(100,1); //turn left
+                    }
+                }
                 if (counter > 1 && forward == 1)
                 {
                     y++;
@@ -566,7 +640,7 @@ void zmain(void)
                     counter = 0;
                     change = 1;
                 }*/
-                if(turnedLeft == 1 && back == 0) //if left was taken on last intersection turn right
+                if(turnedLeft == 1 && back == 0 && y < 11) //if left was taken on last intersection turn right
                 {
                     forward = 0;
                     // tank_turn_right(100,450); // 90 degrees to right
@@ -591,7 +665,7 @@ void zmain(void)
                     }
                 }
             
-                if(getDistance() < 20 && turnedLeft == 0 && back == 0) //if there is obstacle try left
+                if(getDistance() < 20 && turnedLeft == 0 && back == 0 && y < 11) //if there is obstacle try left
                 {
                     forward = 0;
                     while(true) // 90 degrees to left
@@ -616,7 +690,7 @@ void zmain(void)
                     turnedLeft = 1;
                 }
                     
-                if(back == 0 && uTurn == 1) // after 180 degree turn right try left
+                if(back == 0 && uTurn == 1 && y < 11) // after 180 degree turn right try left
                 {
                     forward = 0;
                     while(true)
@@ -641,8 +715,7 @@ void zmain(void)
                         forward = 1;
                     }
                 }
-                    
-                if(getDistance() < 10 && back == 0) //if left is not clear try right // 180 degrees to right
+                if(getDistance() < 20 && back == 0 && y < 11) //if left is not clear try right // 180 degrees to right
                 {
                     while(true)
                     {
@@ -674,7 +747,7 @@ void zmain(void)
                 while(dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0) //if drives over bounds back up
                 {
                     reflectance_digital(&dig);
-                    motor_backward(50,1);
+                    motor_backward(50,20); 
                 }
                 if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) //isolates double positive from section
                 {
