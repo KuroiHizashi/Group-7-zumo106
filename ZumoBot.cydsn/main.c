@@ -104,9 +104,8 @@ void zmain(void)
         if(change == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1)
         {
             motor_forward(0,0);
-            //IR_wait();
-            vTaskDelay(3000);
-            print_mqtt("ZUMO7/start", "%d", xTaskGetTickCount());// Send message to topic
+            IR_wait();
+            print_mqtt("ZUMO04/start", "%d", xTaskGetTickCount());// Send message to topic
             speed = 100;
             motor_forward(speed, 1500); // drives to center of the ring #placeholder time
             break;
@@ -180,28 +179,28 @@ void zmain(void)
         {   
             angle = (atan2(abs(data.accX),data.accY)*180/M_PI);
             printf("%8d %8d  Impact from the left front, impact was from %8d degrees\n",data.accX, data.accY,angle );
-            print_mqtt("ZUMO7/hit", "%d %d Impact from the left front",xTaskGetTickCount(), angle);// Send message to topic
+            print_mqtt("ZUMO04/hit", "%d %d Impact from the left front",xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_backward(speed,200); 
         } else if(data.accX > 5000 && data.accY > 5000) //Look robot in the eyes, impact from the left back
         {   
             angle = 90 + ((atan2(data.accX,data.accY))*180/M_PI);
             printf("%8d %8d  Impact from the left back, impact was from %8d degrees\n",data.accX, data.accY, angle);
-            print_mqtt("ZUMO7/hit", "%d %d Impact from the left back", xTaskGetTickCount(), angle);// Send message to topic
+            print_mqtt("ZUMO04/hit", "%d %d Impact from the left back", xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_forward(speed,200);
         } else if(data.accX < -5000 && data.accY < -5000) //Look robot in the eyes, impact from the right front
         {
             angle = 270 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right front, impact was from %8d degrees\n",data.accX, data.accY,angle );
-            print_mqtt("ZUMO7/hit", "%d %d Impact from the right front", xTaskGetTickCount(), angle);// Send message to topic
+            print_mqtt("ZUMO04/hit", "%d %d Impact from the right front", xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_backward(speed,200);
         } else if(data.accX > 5000 && data.accY < -5000) //Look robot in the eyes, impact from the right back
         {
             angle = 180 + ((atan2(abs(data.accX),abs(data.accY)))*180/M_PI);
             printf("%8d %8d  Impact from the right back, impact was from %8d degree\n",data.accX, data.accY, angle);
-            print_mqtt("ZUMO7/hit", "%d %d Impact from the right back",xTaskGetTickCount(), angle);// Send message to topic
+            print_mqtt("ZUMO04/hit", "%d %d Impact from the right back",xTaskGetTickCount(), angle);// Send message to topic
             //speed = 255;//WE NEED A BRAKE POINT SO THE ROBOT DOES NOT GO OVER THE BLACK LINE AT THE BACKWARD
             //motor_forward(speed,200);
         } 
@@ -209,7 +208,7 @@ void zmain(void)
         if (button == 0)
         {
             end  = xTaskGetTickCount();
-            print_mqtt("ZUMO7/stop", "%d", (end-start));// Send message to topic
+            print_mqtt("ZUMO04/stop", "%d", (end-start));// Send message to topic
             motor_forward(0,0);
             IR_wait();
         }
@@ -243,28 +242,27 @@ void zmain(void)
         //button = SW1_Read();
         vTaskDelay(3000);
         start = xTaskGetTickCount();
-        print_mqtt("ZUMO7/start", "%d", xTaskGetTickCount());// Send message to topic
+        //print_mqtt("ZUMO04/start", "%d", xTaskGetTickCount());// Send message to topic
         while (true) //runs when button is pressed
         {   
-            motor_forward(140,1); //120 toimii kun tank turn delay 5
+            motor_forward(150,1); //120 toimii kun tank turn delay 5
             reflectance_digital(&dig); 
             //printf("%d\n", counter);
              
             if (change == 1 && dig.l3 == 1 && dig.l2 == 1 && dig.l1 == 1 && dig.r1 == 1 && dig.r2 == 1 && dig.r3 == 1) //detects and counts sections
             {
                 counter++;
-                motor_forward(100,5);
+                motor_forward(100,15);
                 if(counter == 1) //run to first section and stops 
                 {
                     motor_forward(0,0);
-                    //IR_wait();
-                    vTaskDelay(3000);
+                    IR_wait();
                 } else if(counter == 3)
                 {
                     motor_forward(0,0);
                     end  = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/stop", "%d", (end));// Send message to topic
-                    print_mqtt("ZUMO7/lap time", "%d", (end-start));// Send message to topic
+                    print_mqtt("ZUMO04/stop", "%d", (end));// Send message to topic
+                    print_mqtt("ZUMO04/lap time", "%d", (end-start));// Send message to topic
                     button = 1;
                     counter = 0;
                     change = 1;
@@ -302,13 +300,13 @@ void zmain(void)
                 if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
                 {   
                     miss = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    print_mqtt("ZUMO04/miss", "%d", (miss));// Send message to topic
                     oppakone=1;
                 }
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO04/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 tank_turn_left(150,10);
@@ -325,13 +323,13 @@ void zmain(void)
                 if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
                 {   
                     miss = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    print_mqtt("ZUMO04/miss", "%d", (miss));// Send message to topic
                     oppakone=1;
                 }
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO04/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 //Beep(1,100);
@@ -351,13 +349,13 @@ void zmain(void)
                 if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
                 {   
                     miss = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    print_mqtt("ZUMO04/miss", "%d", (miss));// Send message to topic
                     oppakone=1;
                 }
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO04/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 motor_turn(160,15,1); // turn right
@@ -375,13 +373,13 @@ void zmain(void)
                 if(dig.r1 == 0 && dig.l1 == 0 && oppakone == 0)
                 {   
                     miss = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/miss", "%d", (miss));// Send message to topic
+                    print_mqtt("ZUMO04/miss", "%d", (miss));// Send message to topic
                     oppakone=1;
                 }
                 if(dig.r1 == 1 && dig.l1 == 1 && oppakone== 1)
                 {   
                     line = xTaskGetTickCount();
-                    print_mqtt("ZUMO7/line", "%d", (line));// Send message to topic
+                    print_mqtt("ZUMO04/line", "%d", (line));// Send message to topic
                     oppakone=0;
                 }
                 motor_turn(15,160,1); // turn right
@@ -421,11 +419,10 @@ void zmain(void)
 
 #if 1 // Labyrintti Competition
     void zmain(void)
-    {
-        int maali = 0;    
+    {   
         int button = 1;
         int counter = 0;
-        int muuttuja=0;
+        int randomSimBoolean =0;
         int turnedLeft = 0;
         int changetwo = 0;
         int change = 1; // change is 1 when robot has moved over the line 
@@ -440,6 +437,7 @@ void zmain(void)
         struct sensors_ dig;
         
         Ultra_Start();
+        IR_Start();
 
         reflectance_start();
         reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000); // set center sensor threshold to 11000 and others to 9000
@@ -447,14 +445,14 @@ void zmain(void)
         motor_start();              // enable motor controller
         motor_forward(0,0);         // set speed to zero to stop motors
         
-        while (true)
+        while (true) // primary programs body
         {
             
-        button = SW1_Read();
+        button = SW1_Read(); // stops robot from running off before it has been set down
         
         while (button == 0) //runs when button is pressed
         {        
-            motor_forward(50,1);
+            motor_forward(50,1); // default action
             reflectance_digital(&dig);
             while(((dig.l1 == 0 && dig.r1 == 1) || (dig.l2 == 0 && dig.r1 == 1)) && change == 1) //slight right
             {
@@ -539,7 +537,7 @@ void zmain(void)
                                 }
                             }     
                         }
-                    } else if(x == 0 && forward == 0 && approachAngle == -1){// 90degree turn to right when reahing x:0
+                    } else if(x == 0 && forward == 0 && approachAngle == -1){// 90 degree turn to right when reahing x:0
                         while(true)
                         {
                             reflectance_digital(&dig);
@@ -556,7 +554,7 @@ void zmain(void)
                         }
                         forward = 1;
                         y++;
-                    } else if(x == 0 && forward == 0 && approachAngle == 1){// 90degree turn to left when reahing x:0
+                    } else if(x == 0 && forward == 0 && approachAngle == 1){// 90 degree turn to left when reahing x:0
                         while(true)
                         {
                             reflectance_digital(&dig);
@@ -631,15 +629,8 @@ void zmain(void)
                 if(counter == 1) //run if first section and stops 
                 {
                     motor_forward(0,0);
-                    vTaskDelay(500);
-                    //IR_wait();
-                } /*else if(maali == 1) // stops program when robot reaches goal
-                {
-                    motor_forward(0,0);
-                    button = 1;
-                    counter = 0;
-                    change = 1;
-                }*/
+                    IR_wait();
+                }
                 if(turnedLeft == 1 && back == 0 && y < 11) //if left was taken on last intersection turn right
                 {
                     forward = 0;
@@ -715,22 +706,22 @@ void zmain(void)
                         forward = 1;
                     }
                 }
-                if(getDistance() < 20 && back == 0 && y < 11) //if left is not clear try right // 180 degrees to right
+                if(getDistance() < 20 && back == 0 && y < 11) // if left is not clear try right // 180 degrees to right
                 {
-                    while(true)
+                    while(true) // runs untill 180 has been turned
                     {
                         reflectance_digital(&dig);
                         if(dig.l1 == 0 && dig.r1 == 0)
                         {
                             changetwo=1;
                         }
-                        if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 0 && changetwo==1) //detects 90 degree turn
+                        if(dig.l1 == 1 && dig.r1 == 1 && randomSimBoolean == 0 && changetwo==1) // detects 90 degree turn
                         {
-                            muuttuja=1;
-                        }else if(dig.l1 == 1 && dig.r1 == 1 && muuttuja == 1 && changetwo==1)//detects 180 degree turn
+                            randomSimBoolean=1;
+                        }else if(dig.l1 == 1 && dig.r1 == 1 && randomSimBoolean == 1 && changetwo==1) // detects 180 degree turn
                         {
                             changetwo = 0;
-                            muuttuja = 0;
+                            randomSimBoolean = 0;
                             x++;
                             back = 2;
                             turnedLeft=0;
@@ -741,15 +732,18 @@ void zmain(void)
                     }
                 }
                 change = 0;
-                print_mqtt("ZUMO7/koordinaatit", "%d y %d x", y, x);// Send message to topic debugging code
+                //Beep(100,200);
+                print_mqtt("ZUMO04/koordinaatit", "%d y %d x", y, x);// Send message to topic debugging code
             }
                 
-                while(dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0) //if drives over bounds back up
+                while(dig.l3 == 0 && dig.l2 == 0 && dig.l1 == 0 && dig.r1 == 0 && dig.r2 == 0 && dig.r3 == 0) // if drives over bounds back up
                 {
                     reflectance_digital(&dig);
-                    motor_backward(50,20); 
+                    motor_backward(50,20);
+                    motor_forward(0,0);
+                    IR_wait();
                 }
-                if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) //isolates double positive from section
+                if(dig.l3 == 0 || dig.l2 == 0 || dig.l1 == 0 || dig.r1 == 0 || dig.r2 == 0 || dig.r3 == 0) // isolates double positive from section
                 {
                     change = 1;
                 }    
@@ -780,21 +774,21 @@ void tank_turn_right(uint8 speed,uint32 delay)
 
 double getDistance(void)
 {
-    double summa = 0.0;
+    double sum = 0.0;
     int array[10];
-    double keskiarvo = 0.0;
+    double average = 0.0;
     
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 10; i++) // reads 10 values is to a list
     {
         array[i] = Ultra_GetDistance();
     }
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 10; i++) // adds all the values up in the list
     {
-        summa += array[i]; 
+        sum += array[i]; 
     }
-    keskiarvo = summa/10;
+    average = sum/10; // takes average from the sum
     
-    return keskiarvo;
+    return average;
     
 }
 /* [] END OF FILE */
